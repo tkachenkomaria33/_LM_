@@ -1,666 +1,650 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!doctype html>
+<html lang="it">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2022.7">
-  <style type="text/css">
-    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
-    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; min-height: 14.0px}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Gurmano Home Game</title>
+<link rel="manifest" href="manifest.json" />
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#F8FAF2">
+<style>
+  :root{
+    --bg:#f8faf2;
+    --card:#ffffff;
+    --text:#222;
+    --maria:#2e8b57; /* verde Maria */
+    --luca:#c62828;  /* rosso Luca */
+    --muted:#777;
+    --accent:#F2C94C;
+  }
+  html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;background:var(--bg);color:var(--text)}
+  .app {max-width:420px;margin:0 auto;padding:12px;}
+  header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+  h1{font-size:18px;margin:0}
+  .scorebar{display:flex;gap:8px;align-items:center}
+  .pill{padding:6px 10px;border-radius:999px;background:var(--card);box-shadow:0 1px 2px rgba(0,0,0,.05);display:flex;gap:8px;align-items:center}
+  .dot{width:12px;height:12px;border-radius:50%}
+  .dot.maria{background:var(--maria)} .dot.luca{background:var(--luca)}
+  .controls{display:flex;gap:6px;margin:8px 0}
+  .btn{padding:8px 10px;border-radius:8px;background:var(--card);border:1px solid #eee;font-weight:600}
+  .calendar{background:var(--card);padding:8px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.06)}
+  .weekdays{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:12px;color:var(--muted);padding:6px 0}
+  .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+  .day{
+    min-height:70px;padding:6px;border-radius:8px;background:linear-gradient(180deg,transparent,rgba(0,0,0,.02));
+    font-size:12px;position:relative;overflow:hidden;
+  }
+  .day .number{position:absolute;top:6px;left:6px;font-weight:700}
+  .entries{position:absolute;bottom:6px;left:6px;right:6px;display:flex;flex-wrap:wrap;gap:4px}
+  .entry{font-size:12px;padding:3px 6px;border-radius:999px;background:rgba(0,0,0,.04)}
+  .entry.maria{color:var(--maria);background:rgba(46,139,87,0.08)}
+  .entry.luca{color:var(--luca);background:rgba(198,40,40,0.08)}
+  .today{outline:2px solid rgba(0,0,0,.03)}
+  footer{margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  .small{font-size:13px;color:var(--muted)}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:flex-end;justify-content:center;padding:12px}
+  .sheet{width:100%;max-width:420px;background:var(--card);border-radius:12px;padding:12px;box-shadow:0 10px 40px rgba(0,0,0,.25)}
+  label{display:block;margin-top:8px;font-size:13px}
+  input[type="text"],select,textarea{width:100%;padding:8px;border-radius:8px;border:1px solid #eee;margin-top:6px}
+  .row{display:flex;gap:6px}
+  .legend-table{width:100%;border-collapse:collapse}
+  .legend-table td{padding:6px;border-bottom:1px dashed #eee}
+  .badge{display:inline-block;padding:6px 10px;border-radius:999px;background:var(--accent);font-weight:700;color:#333}
+  .flex-between{display:flex;justify-content:space-between;align-items:center}
+  @media(min-width:820px){.app{margin-top:20px}}
+</style>
 </head>
 <body>
-<p class="p1">&lt;!doctype html&gt;</p>
-<p class="p1">&lt;html lang="it"&gt;</p>
-<p class="p1">&lt;head&gt;</p>
-<p class="p1">&lt;meta charset="utf-8" /&gt;</p>
-<p class="p1">&lt;meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" /&gt;</p>
-<p class="p1">&lt;title&gt;Gurmano Home Game&lt;/title&gt;</p>
-<p class="p1">&lt;link rel="manifest" href="manifest.json" /&gt;</p>
-<p class="p1">&lt;meta name="apple-mobile-web-app-capable" content="yes"&gt;</p>
-<p class="p1">&lt;meta name="theme-color" content="#F8FAF2"&gt;</p>
-<p class="p1">&lt;style&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>:root{</p>
-<p class="p1"><span class="Apple-converted-space">    </span>--bg:#f8faf2;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>--card:#ffffff;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>--text:#222;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>--maria:#2e8b57; /* verde Maria */</p>
-<p class="p1"><span class="Apple-converted-space">    </span>--luca:#c62828;<span class="Apple-converted-space">  </span>/* rosso Luca */</p>
-<p class="p1"><span class="Apple-converted-space">    </span>--muted:#777;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>--accent:#F2C94C;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;background:var(--bg);color:var(--text)}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>.app {max-width:420px;margin:0 auto;padding:12px;}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>h1{font-size:18px;margin:0}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>.scorebar{display:flex;gap:8px;align-items:center}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>.pill{padding:6px 10px;border-radius:999px;background:var(--card);box-shadow:0 1px 2px rgba(0,0,0,.05);display:flex;gap:8px;align-items:center}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>.dot{width:12px;height:12px;border-radius:50%}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>.dot.maria{background:var(--maria)} .dot.luca{background:var(--luca)}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>.controls{display:flex;gap:6px;margin:8px 0}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>.btn{padding:8px 10px;border-radius:8px;background:var(--card);border:1px solid #eee;font-weight:600}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>.calendar{background:var(--card);padding:8px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.06)}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>.weekdays{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:12px;color:var(--muted);padding:6px 0}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>.day{</p>
-<p class="p1"><span class="Apple-converted-space">    </span>min-height:70px;padding:6px;border-radius:8px;background:linear-gradient(180deg,transparent,rgba(0,0,0,.02));</p>
-<p class="p1"><span class="Apple-converted-space">    </span>font-size:12px;position:relative;overflow:hidden;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>.day .number{position:absolute;top:6px;left:6px;font-weight:700}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>.entries{position:absolute;bottom:6px;left:6px;right:6px;display:flex;flex-wrap:wrap;gap:4px}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>.entry{font-size:12px;padding:3px 6px;border-radius:999px;background:rgba(0,0,0,.04)}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>.entry.maria{color:var(--maria);background:rgba(46,139,87,0.08)}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>.entry.luca{color:var(--luca);background:rgba(198,40,40,0.08)}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>.today{outline:2px solid rgba(0,0,0,.03)}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>footer{margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>.small{font-size:13px;color:var(--muted)}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>.modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:flex-end;justify-content:center;padding:12px}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>.sheet{width:100%;max-width:420px;background:var(--card);border-radius:12px;padding:12px;box-shadow:0 10px 40px rgba(0,0,0,.25)}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>label{display:block;margin-top:8px;font-size:13px}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>input[type="text"],select,textarea{width:100%;padding:8px;border-radius:8px;border:1px solid #eee;margin-top:6px}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>.row{display:flex;gap:6px}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>.legend-table{width:100%;border-collapse:collapse}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>.legend-table td{padding:6px;border-bottom:1px dashed #eee}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>.badge{display:inline-block;padding:6px 10px;border-radius:999px;background:var(--accent);font-weight:700;color:#333}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>.flex-between{display:flex;justify-content:space-between;align-items:center}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>@media(min-width:820px){.app{margin-top:20px}}</p>
-<p class="p1">&lt;/style&gt;</p>
-<p class="p1">&lt;/head&gt;</p>
-<p class="p1">&lt;body&gt;</p>
-<p class="p1">&lt;div class="app" id="app"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;header&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;h1&gt;Giochi di Casa — Gurmano&lt;/h1&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="scorebar"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="pill"&gt;&lt;div class="dot maria"&gt;&lt;/div&gt;&lt;div id="score-maria"&gt;Maria: 0&lt;/div&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="pill"&gt;&lt;div class="dot luca"&gt;&lt;/div&gt;&lt;div id="score-luca"&gt;Luca: 0&lt;/div&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;/header&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;div class="controls"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;button class="btn" id="prev-month"&gt;«&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="pill" id="month-label"&gt;—&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;button class="btn" id="next-month"&gt;»&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;button class="btn" id="open-legend" style="margin-left:auto"&gt;Legenda&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;button class="btn" id="open-settings"&gt;Impostazioni&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;div class="calendar" id="calendar"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="weekdays"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;div&gt;Lun&lt;/div&gt;&lt;div&gt;Mar&lt;/div&gt;&lt;div&gt;Mer&lt;/div&gt;&lt;div&gt;Gio&lt;/div&gt;&lt;div&gt;Ven&lt;/div&gt;&lt;div&gt;Sab&lt;/div&gt;&lt;div&gt;Dom&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="grid" id="grid"&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;footer&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="small"&gt;Regole: &lt;em&gt;Segnare i compiti completati; gli Ops li assegna l'altro giocatore.&lt;/em&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div style="margin-left:auto" class="row"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;button class="btn" id="export-btn"&gt;Esporta&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;button class="btn" id="import-btn"&gt;Importa&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;button class="btn" id="summary-btn"&gt;Riepilogo mese&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;/footer&gt;</p>
-<p class="p1">&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1">&lt;!-- modal container --&gt;</p>
-<p class="p1">&lt;div id="modal-root"&gt;&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1">&lt;script&gt;</p>
-<p class="p1">/* ========== Dati iniziali ========== */</p>
-<p class="p1">const DEFAULT_STATE = {</p>
-<p class="p1"><span class="Apple-converted-space">  </span>players: [</p>
-<p class="p1"><span class="Apple-converted-space">    </span>{id:'maria', name:'Maria', color:'maria'},</p>
-<p class="p1"><span class="Apple-converted-space">    </span>{id:'luca', name:'Luca', color:'luca'}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>],</p>
-<p class="p1"><span class="Apple-converted-space">  </span>// struttura: { yyyy-mm: { day: [ {playerId, delta, note, taskId, type} ] } }</p>
-<p class="p1"><span class="Apple-converted-space">  </span>records: {},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>tasks: {</p>
-<p class="p1"><span class="Apple-converted-space">    </span>// predefinito: id: {title, points, category}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>recurring: [], // esempio: {taskId, weekday: 6, rule: 'weekly', description}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>settings: {</p>
-<p class="p1"><span class="Apple-converted-space">    </span>currentYear: (new Date()).getFullYear(),</p>
-<p class="p1"><span class="Apple-converted-space">    </span>currentMonth: (new Date()).getMonth() // 0-based</p>
-<p class="p1"><span class="Apple-converted-space">  </span>}</p>
-<p class="p1">};</p>
-<p class="p2"><br></p>
-<p class="p1">/* ====== Predefiniti tasks (italiano) ====== */</p>
-<p class="p1">const PRESET_TASKS = [</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_feed_cat', title:'Dare da mangiare al gatto', points:1},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_6_mirror', title:'Lavare 6 specchi', points:1},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_wash_dishes', title:'Lavare i piatti', points:1},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_sink_after', title:'Pulire il lavello dopo i piatti', points:1},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_putaway_dishes', title:'Sistemare i piatti al loro posto', points:1},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_wipe_kitchen', title:'Pulire superfici orizzontali cucina', points:1},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_take_organic', title:'Portare fuori organico', points:1},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_prep_sort', title:'Preparare rifiuti per raccolta differenziata', points:1},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_vacuum_room', title:'Aspirare 1 stanza', points:1},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_cook_one', title:'Preparare 1 piatto', points:1},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_make_bed', title:'Rifare il letto', points:1},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_clean_sink_bath', title:'Lavare lavello in bagno', points:1},</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_change_bulb', title:'Cambiare lampadina', points:2},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_dust_one_room', title:'Spolverare superfici orizzontali in 1 stanza', points:2},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_wash_clothes', title:'Lavare il bucato', points:2},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_hang_laundry', title:'Stendere il bucato', points:2},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_sort_laundry', title:'Raccogliere e separare il bucato', points:2},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_putaway_laundry', title:'Riporre vestiti nei loro posti', points:2},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_write_list', title:'Scrivere lista della spesa', points:2},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_put_away_food', title:'Sistemare i prodotti', points:2},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_clean_window', title:'Lavare 1 finestra', points:2},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_clean_toilets', title:'Pulire WC e bidet', points:2},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_clean_shower', title:'Pulire la doccia', points:2},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_shower_curtain', title:'Lavare la tenda della doccia', points:2},</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_iron', title:'Stirare i vestiti', points:3},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_shop_35', title:'Fare la spesa ≥35€', points:3},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_tidy_10min', title:'Riordinare per 10 minuti', points:3},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_spiders', title:'Togliere ragnatele in casa', points:3},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_clean_shoe', title:'Pulire 1 paio di scarpe', points:3},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_defrost', title:'Sbrinare il frigorifero', points:3},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_vertical_wipe', title:'Pulire verticali in 1 stanza', points:3},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_unblock', title:'Versare pulitore nello scarico', points:3},</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_mop_house', title:'Lavare i pavimenti in tutta la casa', points:4},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_high_dust', title:'Spolverare in alto su un mobile', points:4},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_wash_curtains', title:'Lavare le tende (togliere-lavare-asciugare-appendere)', points:4},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_clean_shower_drain', title:'Pulire lo scarico della doccia', points:4},</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_lights', title:'Pulire i lampadari (corr, bagno, studio, camera)', points:5},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_clean_chair', title:'Lavare una sedia', points:5},</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>// extra</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'t_wash_blanket', title:'Lavare il piumone in lavanderia', points:10}</p>
-<p class="p1">];</p>
-<p class="p2"><br></p>
-<p class="p1">const PRESET_OPS = [</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'op_tp_roll', title:'Finire il rotolo di carta igienica e non sostituirlo', points:-5},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'op_leave_dirty', title:'Lasciare sporco dopo di sé', points:-1},</p>
-<p class="p1"><span class="Apple-converted-space">  </span>{id:'op_no_new_bag', title:'Portare fuori immondizia e non mettere un sacco nuovo', points:-2}</p>
-<p class="p1">];</p>
-<p class="p2"><br></p>
-<p class="p1">/* ====== Helpers &amp; storage ====== */</p>
-<p class="p1">function loadState(){</p>
-<p class="p1"><span class="Apple-converted-space">  </span>try{</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const raw = localStorage.getItem('gamedata_v1');</p>
-<p class="p1"><span class="Apple-converted-space">    </span>if(raw) return JSON.parse(raw);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>}catch(e){}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>// initialize default</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const s = JSON.parse(JSON.stringify(DEFAULT_STATE));</p>
-<p class="p1"><span class="Apple-converted-space">  </span>// seed tasks</p>
-<p class="p1"><span class="Apple-converted-space">  </span>s.tasks = {};</p>
-<p class="p1"><span class="Apple-converted-space">  </span>PRESET_TASKS.forEach(t =&gt; s.tasks[t.id] = {...t});</p>
-<p class="p1"><span class="Apple-converted-space">  </span>PRESET_OPS.forEach(t =&gt; s.tasks[t.id] = {...t});</p>
-<p class="p1"><span class="Apple-converted-space">  </span>// recurring example: ogni sabato cambiare federe (weekday 5 if 0=Sun, but we use 1=Mon..7=Sun)</p>
-<p class="p1"><span class="Apple-converted-space">  </span>s.recurring = [</p>
-<p class="p1"><span class="Apple-converted-space">    </span>// sabato (6) change pillowcase and mop floors once every other saturday? user said: "через одну субботу - менять постельное белье и мыть полы"<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">    </span>// for simplicity we mark every sabato required</p>
-<p class="p1"><span class="Apple-converted-space">    </span>{taskId:'t_make_bed', weekday:6, description:'Ogni sabato: rifare federe'},</p>
-<p class="p1"><span class="Apple-converted-space">    </span>{taskId:'t_mop_house', weekday:6, description:'Ogni sabato: lavare i pavimenti (o ogni due settimane a scelta)'}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>];</p>
-<p class="p1"><span class="Apple-converted-space">  </span>return s;</p>
-<p class="p1">}</p>
-<p class="p1">function saveState(s){ localStorage.setItem('gamedata_v1', JSON.stringify(s)); }</p>
-<p class="p1">let STATE = loadState();</p>
-<p class="p2"><br></p>
-<p class="p1">/* ====== UI rendering ====== */</p>
-<p class="p1">const app = document.getElementById('app');</p>
-<p class="p1">const grid = document.getElementById('grid');</p>
-<p class="p1">const monthLabel = document.getElementById('month-label');</p>
-<p class="p1">const scoreMariaEl = document.getElementById('score-maria');</p>
-<p class="p1">const scoreLucaEl = document.getElementById('score-luca');</p>
-<p class="p2"><br></p>
-<p class="p1">function formatMonth(year, month){</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const d = new Date(year, month, 1);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>return d.toLocaleString('it-IT', {month:'long', year:'numeric'});</p>
-<p class="p1">}</p>
-<p class="p2"><br></p>
-<p class="p1">function getMonthKey(y,m){ return y + '-' + String(m+1).padStart(2,'0'); }</p>
-<p class="p2"><br></p>
-<p class="p1">function buildGrid(){</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const y = STATE.settings.currentYear;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const m = STATE.settings.currentMonth;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>monthLabel.textContent = formatMonth(y,m);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>grid.innerHTML = '';</p>
-<p class="p1"><span class="Apple-converted-space">  </span>// first day weekday<span class="Apple-converted-space">  </span>(0 Sun -&gt; we want Monday as first column)</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const first = new Date(y,m,1);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>// JS: getDay() 0=Sun..6=Sat. We want Monday(1) at index 0 -&gt; compute offset</p>
-<p class="p1"><span class="Apple-converted-space">  </span>let offset = (first.getDay() + 6) % 7; // Monday -&gt; 0</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const daysInMonth = new Date(y,m+1,0).getDate();</p>
-<p class="p1"><span class="Apple-converted-space">  </span>// Build 35 cells (7x5)</p>
-<p class="p1"><span class="Apple-converted-space">  </span>let dayCounter = 1;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>for(let i=0;i&lt;35;i++){</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const cell = document.createElement('div');</p>
-<p class="p1"><span class="Apple-converted-space">    </span>cell.className = 'day';</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const isValid = (i &gt;= offset) &amp;&amp; (dayCounter &lt;= daysInMonth);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>if(isValid){</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const dayNum = dayCounter;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>cell.innerHTML = '&lt;div class="number"&gt;'+dayNum+'&lt;/div&gt;&lt;div class="entries" data-day="'+dayNum+'"&gt;&lt;/div&gt;';</p>
-<p class="p1"><span class="Apple-converted-space">      </span>cell.dataset.day = dayNum;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>// today highlight</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const today = new Date();</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if(today.getFullYear()===y &amp;&amp; today.getMonth()===m &amp;&amp; today.getDate()===dayNum) cell.classList.add('today');</p>
-<p class="p1"><span class="Apple-converted-space">      </span>// click opens quick add</p>
-<p class="p1"><span class="Apple-converted-space">      </span>cell.addEventListener('click', ()=&gt; openQuickAdd(y,m,dayNum));</p>
-<p class="p1"><span class="Apple-converted-space">      </span>dayCounter++;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>cell.innerHTML = '';</p>
-<p class="p1"><span class="Apple-converted-space">      </span>cell.style.background = 'transparent';</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>grid.appendChild(cell);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>renderEntries();</p>
-<p class="p1"><span class="Apple-converted-space">  </span>updateScores();</p>
-<p class="p1">}</p>
-<p class="p2"><br></p>
-<p class="p1">function renderEntries(){</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const y = STATE.settings.currentYear;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const m = STATE.settings.currentMonth;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const key = getMonthKey(y,m);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const monthData = STATE.records[key] || {};</p>
-<p class="p1"><span class="Apple-converted-space">  </span>// clear</p>
-<p class="p1"><span class="Apple-converted-space">  </span>document.querySelectorAll('.entries').forEach(e=&gt; e.innerHTML='');</p>
-<p class="p1"><span class="Apple-converted-space">  </span>// fill recurring marks? we don't auto-add entries, but we show hint? keep simple — not adding auto records</p>
-<p class="p1"><span class="Apple-converted-space">  </span>for(const dayStr in monthData){</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const arr = monthData[dayStr];</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const day = Number(dayStr);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const container = document.querySelector('.entries[data-day="'+day+'"]');</p>
-<p class="p1"><span class="Apple-converted-space">    </span>if(!container) continue;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>// sum per player for display? we show each record as small pill</p>
-<p class="p1"><span class="Apple-converted-space">    </span>arr.forEach(rec =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const el = document.createElement('div');</p>
-<p class="p1"><span class="Apple-converted-space">      </span>el.className = 'entry ' + (rec.playerId==='maria' ? 'maria' : 'luca');</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const sign = rec.delta&gt;0 ? '+' : '';</p>
-<p class="p1"><span class="Apple-converted-space">      </span>el.textContent = sign + rec.delta + (rec.note ? ' • '+rec.note : '');</p>
-<p class="p1"><span class="Apple-converted-space">      </span>// right-click to edit/delete</p>
-<p class="p1"><span class="Apple-converted-space">      </span>el.title = (rec.taskId || rec.type || 'Record') + (rec.note ? ' — '+rec.note : '');</p>
-<p class="p1"><span class="Apple-converted-space">      </span>el.addEventListener('contextmenu', (ev)=&gt;{</p>
-<p class="p1"><span class="Apple-converted-space">        </span>ev.preventDefault();</p>
-<p class="p1"><span class="Apple-converted-space">        </span>openEditRecord(y,m,day,rec);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>});</p>
-<p class="p1"><span class="Apple-converted-space">      </span>container.appendChild(el);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>});</p>
-<p class="p1"><span class="Apple-converted-space">  </span>}</p>
-<p class="p1">}</p>
-<p class="p2"><br></p>
-<p class="p1">function updateScores(){</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const y = STATE.settings.currentYear;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const m = STATE.settings.currentMonth;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const key = getMonthKey(y,m);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const monthData = STATE.records[key] || {};</p>
-<p class="p1"><span class="Apple-converted-space">  </span>let sums = {maria:0, luca:0};</p>
-<p class="p1"><span class="Apple-converted-space">  </span>for(const day in monthData){</p>
-<p class="p1"><span class="Apple-converted-space">    </span>monthData[day].forEach(r=&gt;{</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if(r.playerId==='maria') sums.maria += r.delta;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>else sums.luca += r.delta;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>});</p>
-<p class="p1"><span class="Apple-converted-space">  </span>}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>scoreMariaEl.textContent = 'Maria: ' + sums.maria;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>scoreLucaEl.textContent = 'Luca: ' + sums.luca;</p>
-<p class="p1">}</p>
-<p class="p2"><br></p>
-<p class="p1">/* ====== Quick add modal ====== */</p>
-<p class="p1">function openQuickAdd(y,m,day){</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const modalRoot = document.getElementById('modal-root');</p>
-<p class="p1"><span class="Apple-converted-space">  </span>modalRoot.innerHTML = '';</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const modal = document.createElement('div'); modal.className='modal';</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const sheet = document.createElement('div'); sheet.className='sheet';</p>
-<p class="p1"><span class="Apple-converted-space">  </span>sheet.innerHTML = `</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="flex-between"&gt;&lt;strong&gt;Aggiungi voce — ${day}/${m+1}/${y}&lt;/strong&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;button id="close"&gt;Chiudi&lt;/button&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;label&gt;Seleziona giocatore&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;select id="player"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;option value="maria"&gt;Maria&lt;/option&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;option value="luca"&gt;Luca&lt;/option&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/select&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;label&gt;Tipo&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;select id="type"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;option value="task"&gt;Compito&lt;/option&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;option value="ops"&gt;Ops! (penalità)&lt;/option&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;option value="custom"&gt;Custom&lt;/option&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/select&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;label id="task-label"&gt;Scegli compito&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;select id="task-select"&gt;&lt;/select&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;label id="note-label"&gt;Nota (opzionale)&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;input id="note" type="text" placeholder="es. lavandino sporco"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div style="display:flex;gap:8px;margin-top:10px"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;button class="btn" id="add-btn"&gt;Aggiungi&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;button class="btn" id="cancel-btn"&gt;Annulla&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>`;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>modal.appendChild(sheet);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>modalRoot.appendChild(modal);</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>const player = sheet.querySelector('#player');</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const type = sheet.querySelector('#type');</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const taskSelect = sheet.querySelector('#task-select');</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const note = sheet.querySelector('#note');</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const taskLabel = sheet.querySelector('#task-label');</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const noteLabel = sheet.querySelector('#note-label');</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>function fillTasks(filterType){</p>
-<p class="p1"><span class="Apple-converted-space">    </span>taskSelect.innerHTML = '';</p>
-<p class="p1"><span class="Apple-converted-space">    </span>// filter ops vs tasks by checking points negative or preset list</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const tasks = Object.values(STATE.tasks);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>tasks.forEach(t=&gt;{</p>
-<p class="p1"><span class="Apple-converted-space">      </span>// heuristics: if t.points &lt; 0 -&gt; ops</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if(filterType==='ops' &amp;&amp; t.points &lt; 0){</p>
-<p class="p1"><span class="Apple-converted-space">        </span>const o = document.createElement('option'); o.value=t.id; o.textContent = `${t.title} (${t.points})`; taskSelect.appendChild(o);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>} else if(filterType==='task' &amp;&amp; t.points&gt;0 &amp;&amp; !t.id.startsWith('op_')){</p>
-<p class="p1"><span class="Apple-converted-space">        </span>const o = document.createElement('option'); o.value=t.id; o.textContent = `${t.title} (+${t.points})`; taskSelect.appendChild(o);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>} else if(filterType==='custom'){</p>
-<p class="p1"><span class="Apple-converted-space">        </span>// skip</p>
-<p class="p1"><span class="Apple-converted-space">      </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>});</p>
-<p class="p1"><span class="Apple-converted-space">    </span>if(taskSelect.children.length===0){</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const o = document.createElement('option'); o.value='__none'; o.textContent='— nessun elemento predefinito —'; taskSelect.appendChild(o);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>fillTasks('task');</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>type.addEventListener('change', ()=&gt;{</p>
-<p class="p1"><span class="Apple-converted-space">    </span>if(type.value==='task'){ fillTasks('task'); taskLabel.textContent='Scegli compito'; noteLabel.textContent='Nota (opzionale)'; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>else if(type.value==='ops'){ fillTasks('ops'); taskLabel.textContent='Scegli Ops!'; noteLabel.textContent='Motivo (opzionale)'; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>else { taskSelect.innerHTML=''; const o=document.createElement('option'); o.value='custom'; o.textContent='Aggiungi custom...'; taskSelect.appendChild(o); taskLabel.textContent='Descrizione custom'; noteLabel.textContent='Punti (es. +2 o -1)'; }</p>
-<p class="p1"><span class="Apple-converted-space">  </span>});</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>sheet.querySelector('#close').addEventListener('click', closeModal);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>sheet.querySelector('#cancel-btn').addEventListener('click', closeModal);</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>sheet.querySelector('#add-btn').addEventListener('click', ()=&gt;{</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const playerId = player.value;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>let delta = 0;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>let taskId = null;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>let noteText = note.value.trim();</p>
-<p class="p1"><span class="Apple-converted-space">    </span>if(type.value==='task'){</p>
-<p class="p1"><span class="Apple-converted-space">      </span>taskId = taskSelect.value;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const t = STATE.tasks[taskId];</p>
-<p class="p1"><span class="Apple-converted-space">      </span>delta = t ? t.points : 0;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>} else if(type.value==='ops'){</p>
-<p class="p1"><span class="Apple-converted-space">      </span>taskId = taskSelect.value;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const t = STATE.tasks[taskId];</p>
-<p class="p1"><span class="Apple-converted-space">      </span>delta = t ? t.points : 0;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>// ops: delta negative stored as negative already</p>
-<p class="p1"><span class="Apple-converted-space">    </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>// custom</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const desc = taskSelect.value || '';</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const parsed = parseFloat(prompt('Inserisci punti (es. 1 o -2)'));</p>
-<p class="p1"><span class="Apple-converted-space">      </span>delta = isNaN(parsed) ? 0 : parsed;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>taskId = 'custom-'+Math.random().toString(36).slice(2,8);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>STATE.tasks[taskId] = {id:taskId, title: note.value || 'Custom', points:delta};</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>addRecord(y,m,day, {playerId, delta, note:noteText, taskId, type:type.value});</p>
-<p class="p1"><span class="Apple-converted-space">    </span>closeModal();</p>
-<p class="p1"><span class="Apple-converted-space">  </span>});</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>function closeModal(){ modalRoot.innerHTML=''; buildGrid(); saveState(STATE); }</p>
-<p class="p1">}</p>
-<p class="p2"><br></p>
-<p class="p1">function openEditRecord(y,m,day,rec){</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const modalRoot = document.getElementById('modal-root');</p>
-<p class="p1"><span class="Apple-converted-space">  </span>modalRoot.innerHTML = '';</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const modal = document.createElement('div'); modal.className='modal';</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const sheet = document.createElement('div'); sheet.className='sheet';</p>
-<p class="p1"><span class="Apple-converted-space">  </span>sheet.innerHTML = `</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="flex-between"&gt;&lt;strong&gt;Modifica voce — ${day}/${m+1}/${y}&lt;/strong&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;button id="close"&gt;Chiudi&lt;/button&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;label&gt;Giocatore&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;select id="player"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;option value="maria"&gt;Maria&lt;/option&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;option value="luca"&gt;Luca&lt;/option&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/select&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;label&gt;Punti (incl. segno)&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;input id="delta" type="text" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;label&gt;Nota&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;input id="note" type="text" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div style="display:flex;gap:8px;margin-top:10px"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;button class="btn" id="save-btn"&gt;Salva&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;button class="btn" id="del-btn"&gt;Elimina&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;button class="btn" id="cancel-btn"&gt;Annulla&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>`;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>modal.appendChild(sheet); modalRoot.appendChild(modal);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>sheet.querySelector('#player').value = rec.playerId;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>sheet.querySelector('#delta').value = rec.delta;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>sheet.querySelector('#note').value = rec.note || '';</p>
-<p class="p1"><span class="Apple-converted-space">  </span>sheet.querySelector('#close').addEventListener('click', ()=&gt; modalRoot.innerHTML='');</p>
-<p class="p1"><span class="Apple-converted-space">  </span>sheet.querySelector('#cancel-btn').addEventListener('click', ()=&gt; modalRoot.innerHTML='');</p>
-<p class="p1"><span class="Apple-converted-space">  </span>sheet.querySelector('#save-btn').addEventListener('click', ()=&gt;{</p>
-<p class="p1"><span class="Apple-converted-space">    </span>rec.playerId = sheet.querySelector('#player').value;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>rec.delta = Number(sheet.querySelector('#delta').value) || 0;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>rec.note = sheet.querySelector('#note').value;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>saveState(STATE);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>modalRoot.innerHTML=''; buildGrid();</p>
-<p class="p1"><span class="Apple-converted-space">  </span>});</p>
-<p class="p1"><span class="Apple-converted-space">  </span>sheet.querySelector('#del-btn').addEventListener('click', ()=&gt;{</p>
-<p class="p1"><span class="Apple-converted-space">    </span>if(!confirm('Eliminare questa voce?')) return;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const key = getMonthKey(y,m);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const monthData = STATE.records[key] || {};</p>
-<p class="p1"><span class="Apple-converted-space">    </span>if(monthData[day]){</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const idx = monthData[day].indexOf(rec);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if(idx&gt;=0) monthData[day].splice(idx,1);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>saveState(STATE);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>modalRoot.innerHTML=''; buildGrid();</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>});</p>
-<p class="p1">}</p>
-<p class="p2"><br></p>
-<p class="p1">/* ====== Data operations ====== */</p>
-<p class="p1">function ensureMonthKey(y,m){</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const key = getMonthKey(y,m);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>if(!STATE.records[key]) STATE.records[key] = {};</p>
-<p class="p1"><span class="Apple-converted-space">  </span>return key;</p>
-<p class="p1">}</p>
-<p class="p1">function addRecord(y,m,day,rec){</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const key = ensureMonthKey(y,m);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>if(!STATE.records[key][day]) STATE.records[key][day] = [];</p>
-<p class="p1"><span class="Apple-converted-space">  </span>// push a shallow copy</p>
-<p class="p1"><span class="Apple-converted-space">  </span>STATE.records[key][day].push({...rec});</p>
-<p class="p1"><span class="Apple-converted-space">  </span>saveState(STATE);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>renderEntries();</p>
-<p class="p1"><span class="Apple-converted-space">  </span>updateScores();</p>
-<p class="p1">}</p>
-<p class="p2"><br></p>
-<p class="p1">/* ====== Legend &amp; settings &amp; export/import &amp; summary ====== */</p>
-<p class="p1">document.getElementById('open-legend').addEventListener('click', openLegend);</p>
-<p class="p1">document.getElementById('open-settings').addEventListener('click', openSettings);</p>
-<p class="p1">document.getElementById('prev-month').addEventListener('click', ()=&gt;{</p>
-<p class="p1"><span class="Apple-converted-space">  </span>if(STATE.settings.currentMonth===0){ STATE.settings.currentMonth=11; STATE.settings.currentYear--; } else STATE.settings.currentMonth--;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>buildGrid(); saveState(STATE);</p>
-<p class="p1">});</p>
-<p class="p1">document.getElementById('next-month').addEventListener('click', ()=&gt;{</p>
-<p class="p1"><span class="Apple-converted-space">  </span>if(STATE.settings.currentMonth===11){ STATE.settings.currentMonth=0; STATE.settings.currentYear++; } else STATE.settings.currentMonth++;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>buildGrid(); saveState(STATE);</p>
-<p class="p1">});</p>
-<p class="p2"><br></p>
-<p class="p1">document.getElementById('export-btn').addEventListener('click', ()=&gt;{</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const data = JSON.stringify(STATE);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const blob = new Blob([data], {type:'application/json'});</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const url = URL.createObjectURL(blob);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const a = document.createElement('a'); a.href=url; a.download='gurmano-backup.json'; a.click();</p>
-<p class="p1"><span class="Apple-converted-space">  </span>URL.revokeObjectURL(url);</p>
-<p class="p1">});</p>
-<p class="p1">document.getElementById('import-btn').addEventListener('click', ()=&gt;{</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const input = document.createElement('input'); input.type='file'; input.accept='application/json';</p>
-<p class="p1"><span class="Apple-converted-space">  </span>input.onchange = (e)=&gt;{</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const f = e.target.files[0];</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const reader = new FileReader();</p>
-<p class="p1"><span class="Apple-converted-space">    </span>reader.onload = ()=&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>try{</p>
-<p class="p1"><span class="Apple-converted-space">        </span>const newState = JSON.parse(reader.result);</p>
-<p class="p1"><span class="Apple-converted-space">        </span>STATE = newState;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>saveState(STATE);</p>
-<p class="p1"><span class="Apple-converted-space">        </span>buildGrid();</p>
-<p class="p1"><span class="Apple-converted-space">        </span>alert('Importazione completata.');</p>
-<p class="p1"><span class="Apple-converted-space">      </span>}catch(er){ alert('File non valido'); }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>};</p>
-<p class="p1"><span class="Apple-converted-space">    </span>reader.readAsText(f);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>};</p>
-<p class="p1"><span class="Apple-converted-space">  </span>input.click();</p>
-<p class="p1">});</p>
-<p class="p2"><br></p>
-<p class="p1">document.getElementById('summary-btn').addEventListener('click', openSummary);</p>
-<p class="p2"><br></p>
-<p class="p1">function openLegend(){</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const modalRoot = document.getElementById('modal-root');</p>
-<p class="p1"><span class="Apple-converted-space">  </span>modalRoot.innerHTML = '';</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const modal = document.createElement('div'); modal.className='modal';</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const sheet = document.createElement('div'); sheet.className='sheet';</p>
-<p class="p1"><span class="Apple-converted-space">  </span>sheet.innerHTML = `&lt;div class="flex-between"&gt;&lt;strong&gt;Legenda compiti&lt;/strong&gt;&lt;button id="close"&gt;Chiudi&lt;/button&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;table class="legend-table"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;tbody id="legend-body"&gt;&lt;/tbody&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/table&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div style="margin-top:8px"&gt;&lt;strong&gt;Ops! (penalità)&lt;/strong&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div id="ops-list"&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div style="margin-top:10px"&gt;&lt;button class="btn" id="add-task"&gt;Aggiungi / Modifica compiti&lt;/button&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>`;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>modal.appendChild(sheet); modalRoot.appendChild(modal);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>sheet.querySelector('#close').addEventListener('click', ()=&gt; modalRoot.innerHTML='');</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>const tbody = sheet.querySelector('#legend-body');</p>
-<p class="p1"><span class="Apple-converted-space">  </span>// group by points</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const tasks = Object.values(STATE.tasks).sort((a,b)=&gt;a.points-b.points);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const groups = {};</p>
-<p class="p1"><span class="Apple-converted-space">  </span>tasks.forEach(t=&gt;{</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const key = String(t.points);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>if(!groups[key]) groups[key]=[];</p>
-<p class="p1"><span class="Apple-converted-space">    </span>groups[key].push(t);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>});</p>
-<p class="p1"><span class="Apple-converted-space">  </span>tbody.innerHTML = '';</p>
-<p class="p1"><span class="Apple-converted-space">  </span>[1,2,3,4,5,10].forEach(p=&gt;{</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const arr = groups[String(p)];</p>
-<p class="p1"><span class="Apple-converted-space">    </span>if(arr &amp;&amp; arr.length){</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const tr = document.createElement('tr');</p>
-<p class="p1"><span class="Apple-converted-space">      </span>tr.innerHTML = `&lt;td&gt;&lt;strong&gt;${p} punto${p&gt;1?'i':''}&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;${arr.map(x=&gt;x.title).join(' • ')}&lt;/td&gt;`;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>tbody.appendChild(tr);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>});</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const ops = tasks.filter(t=&gt;t.points&lt;0);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const opsList = sheet.querySelector('#ops-list');</p>
-<p class="p1"><span class="Apple-converted-space">  </span>opsList.innerHTML = ops.map(o=&gt;`&lt;div&gt;${o.title} (${o.points})&lt;/div&gt;`).join('');</p>
-<p class="p1"><span class="Apple-converted-space">  </span>sheet.querySelector('#add-task').addEventListener('click', ()=&gt; openTaskEditor());</p>
-<p class="p1">}</p>
-<p class="p2"><br></p>
-<p class="p1">function openTaskEditor(){</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const modalRoot = document.getElementById('modal-root');</p>
-<p class="p1"><span class="Apple-converted-space">  </span>modalRoot.innerHTML = '';</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const modal = document.createElement('div'); modal.className='modal';</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const sheet = document.createElement('div'); sheet.className='sheet';</p>
-<p class="p1"><span class="Apple-converted-space">  </span>let rows = Object.values(STATE.tasks).map(t=&gt;{</p>
-<p class="p1"><span class="Apple-converted-space">    </span>return `&lt;div style="display:flex;gap:8px;margin-bottom:6px"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;input type="text" data-id="${t.id}" value="${escapeHtml(t.title)}" style="flex:1"/&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;input type="number" data-id-p="${t.id}" value="${t.points}" style="width:70px"/&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;`;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>}).join('');</p>
-<p class="p1"><span class="Apple-converted-space">  </span>sheet.innerHTML = `&lt;div class="flex-between"&gt;&lt;strong&gt;Editor compiti&lt;/strong&gt;&lt;button id="close"&gt;Chiudi&lt;/button&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div style="max-height:50vh;overflow:auto"&gt;${rows}&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div style="margin-top:8px;display:flex;gap:8px"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;button class="btn" id="save-tasks"&gt;Salva&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;button class="btn" id="add-new"&gt;Aggiungi nuovo&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;`;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>modal.appendChild(sheet); modalRoot.appendChild(modal);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>sheet.querySelector('#close').addEventListener('click', ()=&gt; modalRoot.innerHTML='');</p>
-<p class="p1"><span class="Apple-converted-space">  </span>sheet.querySelector('#save-tasks').addEventListener('click', ()=&gt;{</p>
-<p class="p1"><span class="Apple-converted-space">    </span>// read all inputs</p>
-<p class="p1"><span class="Apple-converted-space">    </span>sheet.querySelectorAll('input[type="text"]').forEach(inp=&gt;{</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const id = inp.dataset.id;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const title = inp.value.trim();</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const points = Number(sheet.querySelector(`input[data-id-p="${id}"]`).value) || 0;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>STATE.tasks[id] = {id, title, points};</p>
-<p class="p1"><span class="Apple-converted-space">    </span>});</p>
-<p class="p1"><span class="Apple-converted-space">    </span>saveState(STATE);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>alert('Salvato');</p>
-<p class="p1"><span class="Apple-converted-space">    </span>modalRoot.innerHTML=''; buildGrid();</p>
-<p class="p1"><span class="Apple-converted-space">  </span>});</p>
-<p class="p1"><span class="Apple-converted-space">  </span>sheet.querySelector('#add-new').addEventListener('click', ()=&gt;{</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const nid = 't'+Math.random().toString(36).slice(2,8);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>STATE.tasks[nid] = {id:nid, title:'Nuovo compito', points:1};</p>
-<p class="p1"><span class="Apple-converted-space">    </span>saveState(STATE);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>openTaskEditor(); // reopen to reflect</p>
-<p class="p1"><span class="Apple-converted-space">  </span>});</p>
-<p class="p1">}</p>
-<p class="p2"><br></p>
-<p class="p1">function openSettings(){</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const modalRoot = document.getElementById('modal-root');</p>
-<p class="p1"><span class="Apple-converted-space">  </span>modalRoot.innerHTML = '';</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const modal = document.createElement('div'); modal.className='modal';</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const sheet = document.createElement('div'); sheet.className='sheet';</p>
-<p class="p1"><span class="Apple-converted-space">  </span>sheet.innerHTML = `&lt;div class="flex-between"&gt;&lt;strong&gt;Impostazioni&lt;/strong&gt;&lt;button id="close"&gt;Chiudi&lt;/button&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;label&gt;Nome Maria&lt;/label&gt;&lt;input id="name-maria" value="${STATE.players[0].name}" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;label&gt;Nome Luca&lt;/label&gt;&lt;input id="name-luca" value="${STATE.players[1].name}" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;label&gt;Colore Maria (css var)&lt;/label&gt;&lt;input id="color-maria" value="${getComputedStyle(document.documentElement).getPropertyValue('--maria')}" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;label&gt;Colore Luca (css var)&lt;/label&gt;&lt;input id="color-luca" value="${getComputedStyle(document.documentElement).getPropertyValue('--luca')}" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div style="margin-top:10px"&gt;&lt;button class="btn" id="save-set"&gt;Salva impostazioni&lt;/button&gt;&lt;/div&gt;`;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>modal.appendChild(sheet); modalRoot.appendChild(modal);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>sheet.querySelector('#close').addEventListener('click', ()=&gt; modalRoot.innerHTML='');</p>
-<p class="p1"><span class="Apple-converted-space">  </span>sheet.querySelector('#save-set').addEventListener('click', ()=&gt;{</p>
-<p class="p1"><span class="Apple-converted-space">    </span>STATE.players[0].name = sheet.querySelector('#name-maria').value.trim() || 'Maria';</p>
-<p class="p1"><span class="Apple-converted-space">    </span>STATE.players[1].name = sheet.querySelector('#name-luca').value.trim() || 'Luca';</p>
-<p class="p1"><span class="Apple-converted-space">    </span>document.documentElement.style.setProperty('--maria', sheet.querySelector('#color-maria').value.trim() || '#2e8b57');</p>
-<p class="p1"><span class="Apple-converted-space">    </span>document.documentElement.style.setProperty('--luca', sheet.querySelector('#color-luca').value.trim() || '#c62828');</p>
-<p class="p1"><span class="Apple-converted-space">    </span>saveState(STATE);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>modalRoot.innerHTML=''; buildGrid();</p>
-<p class="p1"><span class="Apple-converted-space">  </span>});</p>
-<p class="p1">}</p>
-<p class="p2"><br></p>
-<p class="p1">/* ====== Summary (badge &amp; winner) ====== */</p>
-<p class="p1">function openSummary(){</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const y = STATE.settings.currentYear;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const m = STATE.settings.currentMonth;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const key = getMonthKey(y,m);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const monthData = STATE.records[key] || {};</p>
-<p class="p1"><span class="Apple-converted-space">  </span>let totals = {maria:0, luca:0};</p>
-<p class="p1"><span class="Apple-converted-space">  </span>let obligatoryCount = {maria:0, luca:0}; // count of recurring tasks completed</p>
-<p class="p1"><span class="Apple-converted-space">  </span>for(const day in monthData){</p>
-<p class="p1"><span class="Apple-converted-space">    </span>monthData[day].forEach(r=&gt;{</p>
-<p class="p1"><span class="Apple-converted-space">      </span>totals[r.playerId] += r.delta;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>// if r.taskId in recurring set, count if positive</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const isRecurring = STATE.recurring.some(rc =&gt; rc.taskId === r.taskId);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>if(isRecurring &amp;&amp; r.delta&gt;0) obligatoryCount[r.playerId]++;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>});</p>
-<p class="p1"><span class="Apple-converted-space">  </span>}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const winner = totals.maria &gt;= totals.luca ? 'maria' : 'luca';</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const mostResponsible = obligatoryCount.maria &gt;= obligatoryCount.luca ? 'maria' : 'luca';</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>const modalRoot = document.getElementById('modal-root'); modalRoot.innerHTML='';</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const modal = document.createElement('div'); modal.className='modal';</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const sheet = document.createElement('div'); sheet.className='sheet';</p>
-<p class="p1"><span class="Apple-converted-space">  </span>sheet.innerHTML = `&lt;div class="flex-between"&gt;&lt;strong&gt;Riepilogo — ${formatMonth(y,m)}&lt;/strong&gt;&lt;button id="close"&gt;Chiudi&lt;/button&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div style="margin-top:6px"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;div&gt;&lt;strong&gt;${STATE.players[0].name}:&lt;/strong&gt; ${totals.maria} punti&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;div&gt;&lt;strong&gt;${STATE.players[1].name}:&lt;/strong&gt; ${totals.luca} punti&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div style="margin-top:8px"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;div&gt;&lt;span class="badge"&gt;Vincitore: ${STATE.players[winner==='maria'?0:1].name}&lt;/span&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;div style="margin-top:6px"&gt;&lt;span class="badge"&gt;Più responsabile: ${STATE.players[mostResponsible==='maria'?0:1].name}&lt;/span&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div style="margin-top:8px"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;strong&gt;Premio suggerito:&lt;/strong&gt; &lt;div style="margin-top:6px"&gt;Il vincitore del mese è &lt;em&gt;libero dai piatti per una settimana&lt;/em&gt; (da concordare).&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div style="margin-top:8px"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;button class="btn" id="close2"&gt;OK&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>`;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>modal.appendChild(sheet); modalRoot.appendChild(modal);</p>
-<p class="p1"><span class="Apple-converted-space">  </span>sheet.querySelector('#close').addEventListener('click', ()=&gt; modalRoot.innerHTML='');</p>
-<p class="p1"><span class="Apple-converted-space">  </span>sheet.querySelector('#close2').addEventListener('click', ()=&gt; modalRoot.innerHTML='');</p>
-<p class="p1">}</p>
-<p class="p2"><br></p>
-<p class="p1">/* ====== init ====== */</p>
-<p class="p1">function init(){</p>
-<p class="p1"><span class="Apple-converted-space">  </span>buildGrid();</p>
-<p class="p1"><span class="Apple-converted-space">  </span>// register service worker for PWA offline</p>
-<p class="p1"><span class="Apple-converted-space">  </span>if('serviceWorker' in navigator){</p>
-<p class="p1"><span class="Apple-converted-space">    </span>navigator.serviceWorker.register('service-worker.js').catch(()=&gt;{/*ok*/});</p>
-<p class="p1"><span class="Apple-converted-space">  </span>}</p>
-<p class="p1">}</p>
-<p class="p1">function escapeHtml(s){ return s.replace(/&amp;/g,'&amp;amp;').replace(/&lt;/g,'&amp;lt;').replace(/&gt;/g,'&amp;gt;'); }</p>
-<p class="p2"><br></p>
-<p class="p1">init();</p>
-<p class="p1">&lt;/script&gt;</p>
-<p class="p1">&lt;/body&gt;</p>
-<p class="p1">&lt;/html&gt;</p>
+<div class="app" id="app">
+  <header>
+    <h1>Giochi di Casa — Gurmano</h1>
+    <div class="scorebar">
+      <div class="pill"><div class="dot maria"></div><div id="score-maria">Maria: 0</div></div>
+      <div class="pill"><div class="dot luca"></div><div id="score-luca">Luca: 0</div></div>
+    </div>
+  </header>
+
+  <div class="controls">
+    <button class="btn" id="prev-month">«</button>
+    <div class="pill" id="month-label">—</div>
+    <button class="btn" id="next-month">»</button>
+    <button class="btn" id="open-legend" style="margin-left:auto">Legenda</button>
+    <button class="btn" id="open-settings">Impostazioni</button>
+  </div>
+
+  <div class="calendar" id="calendar">
+    <div class="weekdays">
+      <div>Lun</div><div>Mar</div><div>Mer</div><div>Gio</div><div>Ven</div><div>Sab</div><div>Dom</div>
+    </div>
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <footer>
+    <div class="small">Regole: <em>Segnare i compiti completati; gli Ops li assegna l'altro giocatore.</em></div>
+    <div style="margin-left:auto" class="row">
+      <button class="btn" id="export-btn">Esporta</button>
+      <button class="btn" id="import-btn">Importa</button>
+      <button class="btn" id="summary-btn">Riepilogo mese</button>
+    </div>
+  </footer>
+</div>
+
+<!-- modal container -->
+<div id="modal-root"></div>
+
+<script>
+/* ========== Dati iniziali ========== */
+const DEFAULT_STATE = {
+  players: [
+    {id:'maria', name:'Maria', color:'maria'},
+    {id:'luca', name:'Luca', color:'luca'}
+  ],
+  // struttura: { yyyy-mm: { day: [ {playerId, delta, note, taskId, type} ] } }
+  records: {},
+  tasks: {
+    // predefinito: id: {title, points, category}
+  },
+  recurring: [], // esempio: {taskId, weekday: 6, rule: 'weekly', description}
+  settings: {
+    currentYear: (new Date()).getFullYear(),
+    currentMonth: (new Date()).getMonth() // 0-based
+  }
+};
+
+/* ====== Predefiniti tasks (italiano) ====== */
+const PRESET_TASKS = [
+  {id:'t_feed_cat', title:'Dare da mangiare al gatto', points:1},
+  {id:'t_6_mirror', title:'Lavare 6 specchi', points:1},
+  {id:'t_wash_dishes', title:'Lavare i piatti', points:1},
+  {id:'t_sink_after', title:'Pulire il lavello dopo i piatti', points:1},
+  {id:'t_putaway_dishes', title:'Sistemare i piatti al loro posto', points:1},
+  {id:'t_wipe_kitchen', title:'Pulire superfici orizzontali cucina', points:1},
+  {id:'t_take_organic', title:'Portare fuori organico', points:1},
+  {id:'t_prep_sort', title:'Preparare rifiuti per raccolta differenziata', points:1},
+  {id:'t_vacuum_room', title:'Aspirare 1 stanza', points:1},
+  {id:'t_cook_one', title:'Preparare 1 piatto', points:1},
+  {id:'t_make_bed', title:'Rifare il letto', points:1},
+  {id:'t_clean_sink_bath', title:'Lavare lavello in bagno', points:1},
+
+  {id:'t_change_bulb', title:'Cambiare lampadina', points:2},
+  {id:'t_dust_one_room', title:'Spolverare superfici orizzontali in 1 stanza', points:2},
+  {id:'t_wash_clothes', title:'Lavare il bucato', points:2},
+  {id:'t_hang_laundry', title:'Stendere il bucato', points:2},
+  {id:'t_sort_laundry', title:'Raccogliere e separare il bucato', points:2},
+  {id:'t_putaway_laundry', title:'Riporre vestiti nei loro posti', points:2},
+  {id:'t_write_list', title:'Scrivere lista della spesa', points:2},
+  {id:'t_put_away_food', title:'Sistemare i prodotti', points:2},
+  {id:'t_clean_window', title:'Lavare 1 finestra', points:2},
+  {id:'t_clean_toilets', title:'Pulire WC e bidet', points:2},
+  {id:'t_clean_shower', title:'Pulire la doccia', points:2},
+  {id:'t_shower_curtain', title:'Lavare la tenda della doccia', points:2},
+
+  {id:'t_iron', title:'Stirare i vestiti', points:3},
+  {id:'t_shop_35', title:'Fare la spesa ≥35€', points:3},
+  {id:'t_tidy_10min', title:'Riordinare per 10 minuti', points:3},
+  {id:'t_spiders', title:'Togliere ragnatele in casa', points:3},
+  {id:'t_clean_shoe', title:'Pulire 1 paio di scarpe', points:3},
+  {id:'t_defrost', title:'Sbrinare il frigorifero', points:3},
+  {id:'t_vertical_wipe', title:'Pulire verticali in 1 stanza', points:3},
+  {id:'t_unblock', title:'Versare pulitore nello scarico', points:3},
+
+  {id:'t_mop_house', title:'Lavare i pavimenti in tutta la casa', points:4},
+  {id:'t_high_dust', title:'Spolverare in alto su un mobile', points:4},
+  {id:'t_wash_curtains', title:'Lavare le tende (togliere-lavare-asciugare-appendere)', points:4},
+  {id:'t_clean_shower_drain', title:'Pulire lo scarico della doccia', points:4},
+
+  {id:'t_lights', title:'Pulire i lampadari (corr, bagno, studio, camera)', points:5},
+  {id:'t_clean_chair', title:'Lavare una sedia', points:5},
+
+  // extra
+  {id:'t_wash_blanket', title:'Lavare il piumone in lavanderia', points:10}
+];
+
+const PRESET_OPS = [
+  {id:'op_tp_roll', title:'Finire il rotolo di carta igienica e non sostituirlo', points:-5},
+  {id:'op_leave_dirty', title:'Lasciare sporco dopo di sé', points:-1},
+  {id:'op_no_new_bag', title:'Portare fuori immondizia e non mettere un sacco nuovo', points:-2}
+];
+
+/* ====== Helpers & storage ====== */
+function loadState(){
+  try{
+    const raw = localStorage.getItem('gamedata_v1');
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  // initialize default
+  const s = JSON.parse(JSON.stringify(DEFAULT_STATE));
+  // seed tasks
+  s.tasks = {};
+  PRESET_TASKS.forEach(t => s.tasks[t.id] = {...t});
+  PRESET_OPS.forEach(t => s.tasks[t.id] = {...t});
+  // recurring example: ogni sabato cambiare federe (weekday 5 if 0=Sun, but we use 1=Mon..7=Sun)
+  s.recurring = [
+    // sabato (6) change pillowcase and mop floors once every other saturday? user said: "через одну субботу - менять постельное белье и мыть полы" 
+    // for simplicity we mark every sabato required
+    {taskId:'t_make_bed', weekday:6, description:'Ogni sabato: rifare federe'},
+    {taskId:'t_mop_house', weekday:6, description:'Ogni sabato: lavare i pavimenti (o ogni due settimane a scelta)'}
+  ];
+  return s;
+}
+function saveState(s){ localStorage.setItem('gamedata_v1', JSON.stringify(s)); }
+let STATE = loadState();
+
+/* ====== UI rendering ====== */
+const app = document.getElementById('app');
+const grid = document.getElementById('grid');
+const monthLabel = document.getElementById('month-label');
+const scoreMariaEl = document.getElementById('score-maria');
+const scoreLucaEl = document.getElementById('score-luca');
+
+function formatMonth(year, month){
+  const d = new Date(year, month, 1);
+  return d.toLocaleString('it-IT', {month:'long', year:'numeric'});
+}
+
+function getMonthKey(y,m){ return y + '-' + String(m+1).padStart(2,'0'); }
+
+function buildGrid(){
+  const y = STATE.settings.currentYear;
+  const m = STATE.settings.currentMonth;
+  monthLabel.textContent = formatMonth(y,m);
+  grid.innerHTML = '';
+  // first day weekday  (0 Sun -> we want Monday as first column)
+  const first = new Date(y,m,1);
+  // JS: getDay() 0=Sun..6=Sat. We want Monday(1) at index 0 -> compute offset
+  let offset = (first.getDay() + 6) % 7; // Monday -> 0
+  const daysInMonth = new Date(y,m+1,0).getDate();
+  // Build 35 cells (7x5)
+  let dayCounter = 1;
+  for(let i=0;i<35;i++){
+    const cell = document.createElement('div');
+    cell.className = 'day';
+    const isValid = (i >= offset) && (dayCounter <= daysInMonth);
+    if(isValid){
+      const dayNum = dayCounter;
+      cell.innerHTML = '<div class="number">'+dayNum+'</div><div class="entries" data-day="'+dayNum+'"></div>';
+      cell.dataset.day = dayNum;
+      // today highlight
+      const today = new Date();
+      if(today.getFullYear()===y && today.getMonth()===m && today.getDate()===dayNum) cell.classList.add('today');
+      // click opens quick add
+      cell.addEventListener('click', ()=> openQuickAdd(y,m,dayNum));
+      dayCounter++;
+    } else {
+      cell.innerHTML = '';
+      cell.style.background = 'transparent';
+    }
+    grid.appendChild(cell);
+  }
+  renderEntries();
+  updateScores();
+}
+
+function renderEntries(){
+  const y = STATE.settings.currentYear;
+  const m = STATE.settings.currentMonth;
+  const key = getMonthKey(y,m);
+  const monthData = STATE.records[key] || {};
+  // clear
+  document.querySelectorAll('.entries').forEach(e=> e.innerHTML='');
+  // fill recurring marks? we don't auto-add entries, but we show hint? keep simple — not adding auto records
+  for(const dayStr in monthData){
+    const arr = monthData[dayStr];
+    const day = Number(dayStr);
+    const container = document.querySelector('.entries[data-day="'+day+'"]');
+    if(!container) continue;
+    // sum per player for display? we show each record as small pill
+    arr.forEach(rec => {
+      const el = document.createElement('div');
+      el.className = 'entry ' + (rec.playerId==='maria' ? 'maria' : 'luca');
+      const sign = rec.delta>0 ? '+' : '';
+      el.textContent = sign + rec.delta + (rec.note ? ' • '+rec.note : '');
+      // right-click to edit/delete
+      el.title = (rec.taskId || rec.type || 'Record') + (rec.note ? ' — '+rec.note : '');
+      el.addEventListener('contextmenu', (ev)=>{
+        ev.preventDefault();
+        openEditRecord(y,m,day,rec);
+      });
+      container.appendChild(el);
+    });
+  }
+}
+
+function updateScores(){
+  const y = STATE.settings.currentYear;
+  const m = STATE.settings.currentMonth;
+  const key = getMonthKey(y,m);
+  const monthData = STATE.records[key] || {};
+  let sums = {maria:0, luca:0};
+  for(const day in monthData){
+    monthData[day].forEach(r=>{
+      if(r.playerId==='maria') sums.maria += r.delta;
+      else sums.luca += r.delta;
+    });
+  }
+  scoreMariaEl.textContent = 'Maria: ' + sums.maria;
+  scoreLucaEl.textContent = 'Luca: ' + sums.luca;
+}
+
+/* ====== Quick add modal ====== */
+function openQuickAdd(y,m,day){
+  const modalRoot = document.getElementById('modal-root');
+  modalRoot.innerHTML = '';
+  const modal = document.createElement('div'); modal.className='modal';
+  const sheet = document.createElement('div'); sheet.className='sheet';
+  sheet.innerHTML = `
+    <div class="flex-between"><strong>Aggiungi voce — ${day}/${m+1}/${y}</strong>
+      <button id="close">Chiudi</button></div>
+    <label>Seleziona giocatore</label>
+    <select id="player">
+      <option value="maria">Maria</option>
+      <option value="luca">Luca</option>
+    </select>
+    <label>Tipo</label>
+    <select id="type">
+      <option value="task">Compito</option>
+      <option value="ops">Ops! (penalità)</option>
+      <option value="custom">Custom</option>
+    </select>
+    <label id="task-label">Scegli compito</label>
+    <select id="task-select"></select>
+    <label id="note-label">Nota (opzionale)</label>
+    <input id="note" type="text" placeholder="es. lavandino sporco">
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn" id="add-btn">Aggiungi</button>
+      <button class="btn" id="cancel-btn">Annulla</button>
+    </div>
+  `;
+  modal.appendChild(sheet);
+  modalRoot.appendChild(modal);
+
+  const player = sheet.querySelector('#player');
+  const type = sheet.querySelector('#type');
+  const taskSelect = sheet.querySelector('#task-select');
+  const note = sheet.querySelector('#note');
+  const taskLabel = sheet.querySelector('#task-label');
+  const noteLabel = sheet.querySelector('#note-label');
+
+  function fillTasks(filterType){
+    taskSelect.innerHTML = '';
+    // filter ops vs tasks by checking points negative or preset list
+    const tasks = Object.values(STATE.tasks);
+    tasks.forEach(t=>{
+      // heuristics: if t.points < 0 -> ops
+      if(filterType==='ops' && t.points < 0){
+        const o = document.createElement('option'); o.value=t.id; o.textContent = `${t.title} (${t.points})`; taskSelect.appendChild(o);
+      } else if(filterType==='task' && t.points>0 && !t.id.startsWith('op_')){
+        const o = document.createElement('option'); o.value=t.id; o.textContent = `${t.title} (+${t.points})`; taskSelect.appendChild(o);
+      } else if(filterType==='custom'){
+        // skip
+      }
+    });
+    if(taskSelect.children.length===0){
+      const o = document.createElement('option'); o.value='__none'; o.textContent='— nessun elemento predefinito —'; taskSelect.appendChild(o);
+    }
+  }
+
+  fillTasks('task');
+
+  type.addEventListener('change', ()=>{
+    if(type.value==='task'){ fillTasks('task'); taskLabel.textContent='Scegli compito'; noteLabel.textContent='Nota (opzionale)'; }
+    else if(type.value==='ops'){ fillTasks('ops'); taskLabel.textContent='Scegli Ops!'; noteLabel.textContent='Motivo (opzionale)'; }
+    else { taskSelect.innerHTML=''; const o=document.createElement('option'); o.value='custom'; o.textContent='Aggiungi custom...'; taskSelect.appendChild(o); taskLabel.textContent='Descrizione custom'; noteLabel.textContent='Punti (es. +2 o -1)'; }
+  });
+
+  sheet.querySelector('#close').addEventListener('click', closeModal);
+  sheet.querySelector('#cancel-btn').addEventListener('click', closeModal);
+
+  sheet.querySelector('#add-btn').addEventListener('click', ()=>{
+    const playerId = player.value;
+    let delta = 0;
+    let taskId = null;
+    let noteText = note.value.trim();
+    if(type.value==='task'){
+      taskId = taskSelect.value;
+      const t = STATE.tasks[taskId];
+      delta = t ? t.points : 0;
+    } else if(type.value==='ops'){
+      taskId = taskSelect.value;
+      const t = STATE.tasks[taskId];
+      delta = t ? t.points : 0;
+      // ops: delta negative stored as negative already
+    } else {
+      // custom
+      const desc = taskSelect.value || '';
+      const parsed = parseFloat(prompt('Inserisci punti (es. 1 o -2)'));
+      delta = isNaN(parsed) ? 0 : parsed;
+      taskId = 'custom-'+Math.random().toString(36).slice(2,8);
+      STATE.tasks[taskId] = {id:taskId, title: note.value || 'Custom', points:delta};
+    }
+    addRecord(y,m,day, {playerId, delta, note:noteText, taskId, type:type.value});
+    closeModal();
+  });
+
+  function closeModal(){ modalRoot.innerHTML=''; buildGrid(); saveState(STATE); }
+}
+
+function openEditRecord(y,m,day,rec){
+  const modalRoot = document.getElementById('modal-root');
+  modalRoot.innerHTML = '';
+  const modal = document.createElement('div'); modal.className='modal';
+  const sheet = document.createElement('div'); sheet.className='sheet';
+  sheet.innerHTML = `
+    <div class="flex-between"><strong>Modifica voce — ${day}/${m+1}/${y}</strong>
+      <button id="close">Chiudi</button></div>
+    <label>Giocatore</label>
+    <select id="player">
+      <option value="maria">Maria</option>
+      <option value="luca">Luca</option>
+    </select>
+    <label>Punti (incl. segno)</label>
+    <input id="delta" type="text" />
+    <label>Nota</label>
+    <input id="note" type="text" />
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn" id="save-btn">Salva</button>
+      <button class="btn" id="del-btn">Elimina</button>
+      <button class="btn" id="cancel-btn">Annulla</button>
+    </div>
+  `;
+  modal.appendChild(sheet); modalRoot.appendChild(modal);
+  sheet.querySelector('#player').value = rec.playerId;
+  sheet.querySelector('#delta').value = rec.delta;
+  sheet.querySelector('#note').value = rec.note || '';
+  sheet.querySelector('#close').addEventListener('click', ()=> modalRoot.innerHTML='');
+  sheet.querySelector('#cancel-btn').addEventListener('click', ()=> modalRoot.innerHTML='');
+  sheet.querySelector('#save-btn').addEventListener('click', ()=>{
+    rec.playerId = sheet.querySelector('#player').value;
+    rec.delta = Number(sheet.querySelector('#delta').value) || 0;
+    rec.note = sheet.querySelector('#note').value;
+    saveState(STATE);
+    modalRoot.innerHTML=''; buildGrid();
+  });
+  sheet.querySelector('#del-btn').addEventListener('click', ()=>{
+    if(!confirm('Eliminare questa voce?')) return;
+    const key = getMonthKey(y,m);
+    const monthData = STATE.records[key] || {};
+    if(monthData[day]){
+      const idx = monthData[day].indexOf(rec);
+      if(idx>=0) monthData[day].splice(idx,1);
+      saveState(STATE);
+      modalRoot.innerHTML=''; buildGrid();
+    }
+  });
+}
+
+/* ====== Data operations ====== */
+function ensureMonthKey(y,m){
+  const key = getMonthKey(y,m);
+  if(!STATE.records[key]) STATE.records[key] = {};
+  return key;
+}
+function addRecord(y,m,day,rec){
+  const key = ensureMonthKey(y,m);
+  if(!STATE.records[key][day]) STATE.records[key][day] = [];
+  // push a shallow copy
+  STATE.records[key][day].push({...rec});
+  saveState(STATE);
+  renderEntries();
+  updateScores();
+}
+
+/* ====== Legend & settings & export/import & summary ====== */
+document.getElementById('open-legend').addEventListener('click', openLegend);
+document.getElementById('open-settings').addEventListener('click', openSettings);
+document.getElementById('prev-month').addEventListener('click', ()=>{
+  if(STATE.settings.currentMonth===0){ STATE.settings.currentMonth=11; STATE.settings.currentYear--; } else STATE.settings.currentMonth--;
+  buildGrid(); saveState(STATE);
+});
+document.getElementById('next-month').addEventListener('click', ()=>{
+  if(STATE.settings.currentMonth===11){ STATE.settings.currentMonth=0; STATE.settings.currentYear++; } else STATE.settings.currentMonth++;
+  buildGrid(); saveState(STATE);
+});
+
+document.getElementById('export-btn').addEventListener('click', ()=>{
+  const data = JSON.stringify(STATE);
+  const blob = new Blob([data], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='gurmano-backup.json'; a.click();
+  URL.revokeObjectURL(url);
+});
+document.getElementById('import-btn').addEventListener('click', ()=>{
+  const input = document.createElement('input'); input.type='file'; input.accept='application/json';
+  input.onchange = (e)=>{
+    const f = e.target.files[0];
+    const reader = new FileReader();
+    reader.onload = ()=> {
+      try{
+        const newState = JSON.parse(reader.result);
+        STATE = newState;
+        saveState(STATE);
+        buildGrid();
+        alert('Importazione completata.');
+      }catch(er){ alert('File non valido'); }
+    };
+    reader.readAsText(f);
+  };
+  input.click();
+});
+
+document.getElementById('summary-btn').addEventListener('click', openSummary);
+
+function openLegend(){
+  const modalRoot = document.getElementById('modal-root');
+  modalRoot.innerHTML = '';
+  const modal = document.createElement('div'); modal.className='modal';
+  const sheet = document.createElement('div'); sheet.className='sheet';
+  sheet.innerHTML = `<div class="flex-between"><strong>Legenda compiti</strong><button id="close">Chiudi</button></div>
+    <table class="legend-table">
+      <tbody id="legend-body"></tbody>
+    </table>
+    <div style="margin-top:8px"><strong>Ops! (penalità)</strong></div>
+    <div id="ops-list"></div>
+    <div style="margin-top:10px"><button class="btn" id="add-task">Aggiungi / Modifica compiti</button></div>
+  `;
+  modal.appendChild(sheet); modalRoot.appendChild(modal);
+  sheet.querySelector('#close').addEventListener('click', ()=> modalRoot.innerHTML='');
+
+  const tbody = sheet.querySelector('#legend-body');
+  // group by points
+  const tasks = Object.values(STATE.tasks).sort((a,b)=>a.points-b.points);
+  const groups = {};
+  tasks.forEach(t=>{
+    const key = String(t.points);
+    if(!groups[key]) groups[key]=[];
+    groups[key].push(t);
+  });
+  tbody.innerHTML = '';
+  [1,2,3,4,5,10].forEach(p=>{
+    const arr = groups[String(p)];
+    if(arr && arr.length){
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td><strong>${p} punto${p>1?'i':''}</strong></td><td>${arr.map(x=>x.title).join(' • ')}</td>`;
+      tbody.appendChild(tr);
+    }
+  });
+  const ops = tasks.filter(t=>t.points<0);
+  const opsList = sheet.querySelector('#ops-list');
+  opsList.innerHTML = ops.map(o=>`<div>${o.title} (${o.points})</div>`).join('');
+  sheet.querySelector('#add-task').addEventListener('click', ()=> openTaskEditor());
+}
+
+function openTaskEditor(){
+  const modalRoot = document.getElementById('modal-root');
+  modalRoot.innerHTML = '';
+  const modal = document.createElement('div'); modal.className='modal';
+  const sheet = document.createElement('div'); sheet.className='sheet';
+  let rows = Object.values(STATE.tasks).map(t=>{
+    return `<div style="display:flex;gap:8px;margin-bottom:6px">
+      <input type="text" data-id="${t.id}" value="${escapeHtml(t.title)}" style="flex:1"/>
+      <input type="number" data-id-p="${t.id}" value="${t.points}" style="width:70px"/>
+    </div>`;
+  }).join('');
+  sheet.innerHTML = `<div class="flex-between"><strong>Editor compiti</strong><button id="close">Chiudi</button></div>
+    <div style="max-height:50vh;overflow:auto">${rows}</div>
+    <div style="margin-top:8px;display:flex;gap:8px">
+      <button class="btn" id="save-tasks">Salva</button>
+      <button class="btn" id="add-new">Aggiungi nuovo</button>
+    </div>`;
+  modal.appendChild(sheet); modalRoot.appendChild(modal);
+  sheet.querySelector('#close').addEventListener('click', ()=> modalRoot.innerHTML='');
+  sheet.querySelector('#save-tasks').addEventListener('click', ()=>{
+    // read all inputs
+    sheet.querySelectorAll('input[type="text"]').forEach(inp=>{
+      const id = inp.dataset.id;
+      const title = inp.value.trim();
+      const points = Number(sheet.querySelector(`input[data-id-p="${id}"]`).value) || 0;
+      STATE.tasks[id] = {id, title, points};
+    });
+    saveState(STATE);
+    alert('Salvato');
+    modalRoot.innerHTML=''; buildGrid();
+  });
+  sheet.querySelector('#add-new').addEventListener('click', ()=>{
+    const nid = 't'+Math.random().toString(36).slice(2,8);
+    STATE.tasks[nid] = {id:nid, title:'Nuovo compito', points:1};
+    saveState(STATE);
+    openTaskEditor(); // reopen to reflect
+  });
+}
+
+function openSettings(){
+  const modalRoot = document.getElementById('modal-root');
+  modalRoot.innerHTML = '';
+  const modal = document.createElement('div'); modal.className='modal';
+  const sheet = document.createElement('div'); sheet.className='sheet';
+  sheet.innerHTML = `<div class="flex-between"><strong>Impostazioni</strong><button id="close">Chiudi</button></div>
+    <label>Nome Maria</label><input id="name-maria" value="${STATE.players[0].name}" />
+    <label>Nome Luca</label><input id="name-luca" value="${STATE.players[1].name}" />
+    <label>Colore Maria (css var)</label><input id="color-maria" value="${getComputedStyle(document.documentElement).getPropertyValue('--maria')}" />
+    <label>Colore Luca (css var)</label><input id="color-luca" value="${getComputedStyle(document.documentElement).getPropertyValue('--luca')}" />
+    <div style="margin-top:10px"><button class="btn" id="save-set">Salva impostazioni</button></div>`;
+  modal.appendChild(sheet); modalRoot.appendChild(modal);
+  sheet.querySelector('#close').addEventListener('click', ()=> modalRoot.innerHTML='');
+  sheet.querySelector('#save-set').addEventListener('click', ()=>{
+    STATE.players[0].name = sheet.querySelector('#name-maria').value.trim() || 'Maria';
+    STATE.players[1].name = sheet.querySelector('#name-luca').value.trim() || 'Luca';
+    document.documentElement.style.setProperty('--maria', sheet.querySelector('#color-maria').value.trim() || '#2e8b57');
+    document.documentElement.style.setProperty('--luca', sheet.querySelector('#color-luca').value.trim() || '#c62828');
+    saveState(STATE);
+    modalRoot.innerHTML=''; buildGrid();
+  });
+}
+
+/* ====== Summary (badge & winner) ====== */
+function openSummary(){
+  const y = STATE.settings.currentYear;
+  const m = STATE.settings.currentMonth;
+  const key = getMonthKey(y,m);
+  const monthData = STATE.records[key] || {};
+  let totals = {maria:0, luca:0};
+  let obligatoryCount = {maria:0, luca:0}; // count of recurring tasks completed
+  for(const day in monthData){
+    monthData[day].forEach(r=>{
+      totals[r.playerId] += r.delta;
+      // if r.taskId in recurring set, count if positive
+      const isRecurring = STATE.recurring.some(rc => rc.taskId === r.taskId);
+      if(isRecurring && r.delta>0) obligatoryCount[r.playerId]++;
+    });
+  }
+  const winner = totals.maria >= totals.luca ? 'maria' : 'luca';
+  const mostResponsible = obligatoryCount.maria >= obligatoryCount.luca ? 'maria' : 'luca';
+
+  const modalRoot = document.getElementById('modal-root'); modalRoot.innerHTML='';
+  const modal = document.createElement('div'); modal.className='modal';
+  const sheet = document.createElement('div'); sheet.className='sheet';
+  sheet.innerHTML = `<div class="flex-between"><strong>Riepilogo — ${formatMonth(y,m)}</strong><button id="close">Chiudi</button></div>
+    <div style="margin-top:6px">
+      <div><strong>${STATE.players[0].name}:</strong> ${totals.maria} punti</div>
+      <div><strong>${STATE.players[1].name}:</strong> ${totals.luca} punti</div>
+    </div>
+    <div style="margin-top:8px">
+      <div><span class="badge">Vincitore: ${STATE.players[winner==='maria'?0:1].name}</span></div>
+      <div style="margin-top:6px"><span class="badge">Più responsabile: ${STATE.players[mostResponsible==='maria'?0:1].name}</span></div>
+    </div>
+    <div style="margin-top:8px">
+      <strong>Premio suggerito:</strong> <div style="margin-top:6px">Il vincitore del mese è <em>libero dai piatti per una settimana</em> (da concordare).</div>
+    </div>
+    <div style="margin-top:8px">
+      <button class="btn" id="close2">OK</button>
+    </div>
+  `;
+  modal.appendChild(sheet); modalRoot.appendChild(modal);
+  sheet.querySelector('#close').addEventListener('click', ()=> modalRoot.innerHTML='');
+  sheet.querySelector('#close2').addEventListener('click', ()=> modalRoot.innerHTML='');
+}
+
+/* ====== init ====== */
+function init(){
+  buildGrid();
+  // register service worker for PWA offline
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('service-worker.js').catch(()=>{/*ok*/});
+  }
+}
+function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+init();
+</script>
 </body>
 </html>
