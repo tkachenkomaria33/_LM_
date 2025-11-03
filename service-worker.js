@@ -6,8 +6,6 @@ const urlsToCache = [
   './icon-192.png',
   './icon-512.png'
 ];
-
-// Устанавливаем Service Worker и кэшируем файлы
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
@@ -15,8 +13,6 @@ self.addEventListener('install', event => {
     })
   );
 });
-
-// Активируем и очищаем старые кеши
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(cacheNames => {
@@ -28,12 +24,9 @@ self.addEventListener('activate', event => {
     })
   );
 });
-
-// Перехватываем запросы
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request).then(response => {
-      // Если есть в кеше — возвращаем
       if (response) {
         return response;
       }
