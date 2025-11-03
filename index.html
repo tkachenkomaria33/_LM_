@@ -12,13 +12,14 @@
     --bg:#f8faf2;
     --card:#ffffff;
     --text:#222;
-    --maria:#2e8b57; /* verde Maria */
-    --luca:#c62828;  /* rosso Luca */
+    --maria:#2e8b57;
+    --luca:#c62828;
     --muted:#777;
     --accent:#F2C94C;
+    --bar:#fafafa;
   }
   html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;background:var(--bg);color:var(--text)}
-  .app {max-width:420px;margin:0 auto;padding:12px;}
+  .app {max-width:420px;margin:0 auto;padding:12px;padding-bottom:84px;} /* space for bottom bar */
   header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
   h1{font-size:18px;margin:0}
   .scorebar{display:flex;gap:8px;align-items:center}
@@ -33,6 +34,7 @@
   .day{
     min-height:70px;padding:6px;border-radius:8px;background:linear-gradient(180deg,transparent,rgba(0,0,0,.02));
     font-size:12px;position:relative;overflow:hidden;
+    -webkit-tap-highlight-color: transparent;
   }
   .day .number{position:absolute;top:6px;left:6px;font-weight:700}
   .entries{position:absolute;bottom:6px;left:6px;right:6px;display:flex;flex-wrap:wrap;gap:4px}
@@ -52,8 +54,12 @@
   .legend-table td{padding:6px;border-bottom:1px dashed #eee}
   .badge{display:inline-block;padding:6px 10px;border-radius:999px;background:var(--accent);font-weight:700;color:#333}
   .flex-between{display:flex;justify-content:space-between;align-items:center}
-  .history-list{max-height:50vh;overflow:auto;padding:6px}
+  .history-list{max-height:55vh;overflow:auto;padding:6px}
   .history-day{padding:8px;border-radius:8px;background:#fbfbfb;margin-bottom:8px}
+  /* bottom bar */
+  .bottom-bar{position:fixed;left:0;right:0;bottom:0;height:64px;background:var(--bar);display:flex;gap:8px;align-items:center;justify-content:space-around;padding:8px;border-top:1px solid #eee;z-index:60}
+  .bb-btn{flex:1;height:48px;border-radius:10px;background:var(--card);border:1px solid #eee;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .hidden{display:none}
   @media(min-width:820px){.app{margin-top:20px}}
 </style>
 </head>
@@ -67,30 +73,44 @@
     </div>
   </header>
 
-  <div class="controls">
-    <button class="btn" id="prev-month">«</button>
-    <div class="pill" id="month-label">—</div>
-    <button class="btn" id="next-month">»</button>
-    <button class="btn" id="open-legend" style="margin-left:auto">Legenda</button>
-    <button class="btn" id="open-history">Storico</button>
-    <button class="btn" id="open-settings">Impostazioni</button>
+  <div id="main-view">
+    <div class="controls">
+      <button class="btn" id="prev-month">«</button>
+      <div class="pill" id="month-label">—</div>
+      <button class="btn" id="next-month">»</button>
+      <button class="btn" id="open-legend" style="margin-left:auto">Legenda</button>
+      <button class="btn" id="open-settings">Impostazioni</button>
+    </div>
+
+    <div class="calendar" id="calendar">
+      <div class="weekdays">
+        <div>Lun</div><div>Mar</div><div>Mer</div><div>Gio</div><div>Ven</div><div>Sab</div><div>Dom</div>
+      </div>
+      <div class="grid" id="grid"></div>
+    </div>
+
+    <footer>
+      <div class="small">Regole: <em>Segnare i compiti completati; gli Ops li assegna l'altro giocatore. Tocca una voce per modificarla o eliminarla.</em></div>
+      <div style="margin-left:auto" class="row">
+        <button class="btn" id="summary-btn">Riepilogo mese</button>
+      </div>
+    </footer>
   </div>
 
-  <div class="calendar" id="calendar">
-    <div class="weekdays">
-      <div>Lun</div><div>Mar</div><div>Mer</div><div>Gio</div><div>Ven</div><div>Sab</div><div>Dom</div>
+  <div id="history-view" class="hidden">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <button class="btn" id="back-calendar">⬅️ Torna al calendario</button>
+      <div style="font-weight:700;margin-left:8px" id="history-title">Storico</div>
     </div>
-    <div class="grid" id="grid"></div>
+    <div class="history-list" id="history-list"></div>
   </div>
 
-  <footer>
-    <div class="small">Regole: <em>Segnare i compiti completati; gli Ops li assegna l'altro giocatore. Tocca una voce per modificarla o eliminarla.</em></div>
-    <div style="margin-left:auto" class="row">
-      <button class="btn" id="export-btn">Esporta</button>
-      <button class="btn" id="import-btn">Importa</button>
-      <button class="btn" id="summary-btn">Riepilogo mese</button>
-    </div>
-  </footer>
+</div>
+
+<div class="bottom-bar">
+  <button class="bb-btn" id="export-bottom">Esporta</button>
+  <button class="bb-btn" id="open-history-bottom">Storico</button>
+  <button class="bb-btn" id="summary-bottom">Riepilogo mese</button>
 </div>
 
 <!-- modal container -->
@@ -112,7 +132,8 @@ const DEFAULT_STATE = {
   }
 };
 
-const PRESET_TASKS = [
+/* Preset tasks (italiano) */
+const PRESET_TASKS = [ 
   {id:'t_feed_cat', title:'Dare da mangiare al gatto', points:1},
   {id:'t_6_mirror', title:'Lavare 6 specchi', points:1},
   {id:'t_wash_dishes', title:'Lavare i piatti', points:1},
@@ -125,7 +146,6 @@ const PRESET_TASKS = [
   {id:'t_cook_one', title:'Preparare 1 piatto', points:1},
   {id:'t_make_bed', title:'Rifare il letto', points:1},
   {id:'t_clean_sink_bath', title:'Lavare lavello in bagno', points:1},
-
   {id:'t_change_bulb', title:'Cambiare lampadina', points:2},
   {id:'t_dust_one_room', title:'Spolverare superfici orizzontali in 1 stanza', points:2},
   {id:'t_wash_clothes', title:'Lavare il bucato', points:2},
@@ -138,7 +158,6 @@ const PRESET_TASKS = [
   {id:'t_clean_toilets', title:'Pulire WC e bidet', points:2},
   {id:'t_clean_shower', title:'Pulire la doccia', points:2},
   {id:'t_shower_curtain', title:'Lavare la tenda della doccia', points:2},
-
   {id:'t_iron', title:'Stirare i vestiti', points:3},
   {id:'t_shop_35', title:'Fare la spesa ≥35€', points:3},
   {id:'t_tidy_10min', title:'Riordinare per 10 minuti', points:3},
@@ -147,15 +166,12 @@ const PRESET_TASKS = [
   {id:'t_defrost', title:'Sbrinare il frigorifero', points:3},
   {id:'t_vertical_wipe', title:'Pulire verticali in 1 stanza', points:3},
   {id:'t_unblock', title:'Versare pulitore nello scarico', points:3},
-
   {id:'t_mop_house', title:'Lavare i pavimenti in tutta la casa', points:4},
   {id:'t_high_dust', title:'Spolverare in alto su un mobile', points:4},
   {id:'t_wash_curtains', title:'Lavare le tende (togliere-lavare-asciugare-appendere)', points:4},
   {id:'t_clean_shower_drain', title:'Pulire lo scarico della doccia', points:4},
-
   {id:'t_lights', title:'Pulire i lampadari (corr, bagno, studio, camera)', points:5},
   {id:'t_clean_chair', title:'Lavare una sedia', points:5},
-
   {id:'t_wash_blanket', title:'Lavare il piumone in lavanderia', points:10}
 ];
 
@@ -183,7 +199,7 @@ function loadState(){
 function saveState(s){ localStorage.setItem('gamedata_v1', JSON.stringify(s)); }
 let STATE = loadState();
 
-/* UI elements */
+/* UI refs */
 const grid = document.getElementById('grid');
 const monthLabel = document.getElementById('month-label');
 const scoreMariaEl = document.getElementById('score-maria');
@@ -214,7 +230,7 @@ function buildGrid(){
       cell.dataset.day = dayNum;
       const today = new Date();
       if(today.getFullYear()===y && today.getMonth()===m && today.getDate()===dayNum) cell.classList.add('today');
-      cell.addEventListener('click', ()=> openQuickAdd(y,m,dayNum));
+      cell.addEventListener('click', ()=> openDayPopup(y,m,dayNum));
       dayCounter++;
     } else {
       cell.innerHTML = '';
@@ -237,18 +253,24 @@ function renderEntries(){
     const day = Number(dayStr);
     const container = document.querySelector('.entries[data-day="'+day+'"]');
     if(!container) continue;
-    arr.forEach(rec => {
+    // show only up to 3 small pills to avoid overflow
+    arr.slice(0,3).forEach(rec => {
       const el = document.createElement('div');
       el.className = 'entry ' + (rec.playerId==='maria' ? 'maria' : 'luca');
       const sign = rec.delta>0 ? '+' : '';
-      // content with clickable area to edit
-      el.innerHTML = `<span class="text">${sign + rec.delta}</span><span class="smallx">✎</span>`;
+      el.innerHTML = `<span class="text">${sign + rec.delta}</span>`;
+      // small tap opens day popup and highlights
       el.addEventListener('click', (ev)=>{
         ev.stopPropagation();
-        openEditRecord(STATE.settings.currentYear, STATE.settings.currentMonth, day, rec);
+        openDayPopup(STATE.settings.currentYear, STATE.settings.currentMonth, day);
       });
       container.appendChild(el);
     });
+    if(arr.length>3){
+      const more = document.createElement('div'); more.className='entry'; more.textContent = '⋯';
+      more.addEventListener('click',(ev)=>{ ev.stopPropagation(); openDayPopup(STATE.settings.currentYear, STATE.settings.currentMonth, day); });
+      container.appendChild(more);
+    }
   }
 }
 
@@ -268,7 +290,48 @@ function updateScores(){
   scoreLucaEl.textContent = STATE.players[1].name + ': ' + sums.luca;
 }
 
-/* Quick add modal */
+/* Day popup: shows entries for that day with delete buttons */
+function openDayPopup(y,m,day){
+  const modalRoot = document.getElementById('modal-root');
+  modalRoot.innerHTML = '';
+  const modal = document.createElement('div'); modal.className='modal';
+  const sheet = document.createElement('div'); sheet.className='sheet';
+  sheet.innerHTML = `<div class="flex-between"><strong>Voci — ${day}/${m+1}/${y}</strong><button id="close">Chiudi</button></div>
+    <div id="day-list" style="margin-top:8px"></div>
+    <div style="margin-top:10px;display:flex;gap:8px"><button class="btn" id="add-new">Aggiungi voce</button><button class="btn" id="close2">Chiudi</button></div>`;
+  modal.appendChild(sheet); modalRoot.appendChild(modal);
+  sheet.querySelector('#close').addEventListener('click', ()=> modalRoot.innerHTML='');
+  sheet.querySelector('#close2').addEventListener('click', ()=> modalRoot.innerHTML='');
+
+  const listEl = sheet.querySelector('#day-list');
+  const key = getMonthKey(y,m);
+  const monthData = STATE.records[key] || {};
+  const arr = (monthData[day] || []);
+  if(arr.length===0) listEl.innerHTML = '<div class="small">Nessuna voce per questo giorno.</div>';
+  arr.forEach(r=>{
+    const row = document.createElement('div'); row.style.display='flex'; row.style.justifyContent='space-between'; row.style.alignItems='center'; row.style.marginBottom='8px';
+    const left = document.createElement('div'); left.textContent = (r.delta>0?'+':'')+r.delta + ' — ' + (r.note || (STATE.tasks[r.taskId] ? STATE.tasks[r.taskId].title : ''));
+    const right = document.createElement('div');
+    const del = document.createElement('button'); del.className='btn'; del.textContent='Elimina'; del.addEventListener('click', ()=>{
+      if(!confirm('Eliminare questa voce?')) return;
+      const idx = (monthData[day]||[]).findIndex(x=>x.id===r.id);
+      if(idx>=0) monthData[day].splice(idx,1);
+      saveState(STATE);
+      modalRoot.innerHTML='';
+      buildGrid();
+    });
+    right.appendChild(del);
+    row.appendChild(left); row.appendChild(right);
+    listEl.appendChild(row);
+  });
+
+  sheet.querySelector('#add-new').addEventListener('click', ()=> {
+    openQuickAdd(y,m,day);
+    // refresh after closing quick add will happen when modal is removed
+  });
+}
+
+/* Quick add modal (same as before) */
 function openQuickAdd(y,m,day){
   const modalRoot = document.getElementById('modal-root');
   modalRoot.innerHTML = '';
@@ -296,7 +359,6 @@ function openQuickAdd(y,m,day){
       <button class="btn" id="add-btn">Aggiungi</button>
       <button class="btn" id="cancel-btn">Annulla</button>
     </div>
-    <div style="margin-top:10px"><strong>Voci del giorno</strong><div id="day-list" style="margin-top:6px"></div></div>
   `;
   modal.appendChild(sheet);
   modalRoot.appendChild(modal);
@@ -305,7 +367,6 @@ function openQuickAdd(y,m,day){
   const type = sheet.querySelector('#type');
   const taskSelect = sheet.querySelector('#task-select');
   const note = sheet.querySelector('#note');
-  const dayList = sheet.querySelector('#day-list');
 
   function fillTasks(filterType){
     taskSelect.innerHTML = '';
@@ -322,7 +383,6 @@ function openQuickAdd(y,m,day){
       const o = document.createElement('option'); o.value='__none'; o.textContent='— nessun elemento predefinito —'; taskSelect.appendChild(o);
     }
   }
-
   fillTasks('task');
   type.addEventListener('change', ()=>{
     if(type.value==='task'){ fillTasks('task'); taskLabel.textContent='Scegli compito'; noteLabel.textContent='Nota (opzionale)'; }
@@ -332,23 +392,6 @@ function openQuickAdd(y,m,day){
 
   sheet.querySelector('#close').addEventListener('click', closeModal);
   sheet.querySelector('#cancel-btn').addEventListener('click', closeModal);
-
-  function refreshDayList(){
-    dayList.innerHTML = '';
-    const key = getMonthKey(y,m);
-    const monthData = STATE.records[key] || {};
-    const arr = (monthData[day] || []).slice();
-    arr.forEach(r=>{
-      const div = document.createElement('div'); div.style.display='flex'; div.style.justifyContent='space-between'; div.style.alignItems='center'; div.style.marginBottom='6px';
-      const left = document.createElement('div'); left.textContent = (r.delta>0?'+':'')+r.delta + ' — ' + (r.note || (STATE.tasks[r.taskId] ? STATE.tasks[r.taskId].title : ''));
-      const right = document.createElement('div');
-      const edit = document.createElement('button'); edit.className='btn'; edit.textContent='Modifica'; edit.addEventListener('click', ()=> openEditRecord(y,m,day,r));
-      right.appendChild(edit);
-      div.appendChild(left); div.appendChild(right);
-      dayList.appendChild(div);
-    });
-  }
-  refreshDayList();
 
   sheet.querySelector('#add-btn').addEventListener('click', ()=>{
     const playerId = player.value;
@@ -371,16 +414,15 @@ function openQuickAdd(y,m,day){
     }
     const rec = { id: 'r_'+Math.random().toString(36).slice(2,9), playerId, delta, note:noteText, taskId, type:type.value, createdAt: Date.now() };
     addRecord(y,m,day, rec);
-    note.value=''; refreshDayList();
+    closeModal();
   });
 
   function closeModal(){ modalRoot.innerHTML=''; buildGrid(); saveState(STATE); }
 }
 
-/* Edit / delete record */
+/* Edit / delete record modal (used from history) */
 function openEditRecord(y,m,day,rec){
-  const modalRoot = document.getElementById('modal-root');
-  modalRoot.innerHTML = '';
+  const modalRoot = document.getElementById('modal-root'); modalRoot.innerHTML='';
   const modal = document.createElement('div'); modal.className='modal';
   const sheet = document.createElement('div'); sheet.className='sheet';
   sheet.innerHTML = `
@@ -445,37 +487,31 @@ function addRecord(y,m,day,rec){
 /* Legend, settings, export/import, history */
 document.getElementById('open-legend').addEventListener('click', openLegend);
 document.getElementById('open-settings').addEventListener('click', openSettings);
-document.getElementById('open-history').addEventListener('click', openHistory);
 document.getElementById('prev-month').addEventListener('click', ()=>{ if(STATE.settings.currentMonth===0){ STATE.settings.currentMonth=11; STATE.settings.currentYear--; } else STATE.settings.currentMonth--; buildGrid(); saveState(STATE); });
 document.getElementById('next-month').addEventListener('click', ()=>{ if(STATE.settings.currentMonth===11){ STATE.settings.currentMonth=0; STATE.settings.currentYear++; } else STATE.settings.currentMonth++; buildGrid(); saveState(STATE); });
 
-document.getElementById('export-btn').addEventListener('click', ()=>{
-  const data = JSON.stringify(STATE);
-  const blob = new Blob([data], {type:'application/json'});
+document.getElementById('export-bottom').addEventListener('click', ()=> {
+  const y = STATE.settings.currentYear; const m = STATE.settings.currentMonth;
+  const key = getMonthKey(y,m);
+  const monthData = STATE.records[key] || {};
+  // build csv lines
+  let lines = [['date','player','points','note','taskId','createdAt']];
+  for(const d of Object.keys(monthData).sort((a,b)=>a-b)){
+    (monthData[d]||[]).forEach(r=>{
+      lines.push([`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`, r.playerId, r.delta, `"${(r.note||'').replace(/"/g,'""')}"`, r.taskId||'', r.createdAt||'']);
+    });
+  }
+  const csv = lines.map(l=>l.join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href=url; a.download='gurmano-backup.json'; a.click();
+  const a = document.createElement('a'); a.href=url; a.download=`storico-${getMonthKey(y,m)}.csv`; a.click();
   URL.revokeObjectURL(url);
 });
-document.getElementById('import-btn').addEventListener('click', ()=>{
-  const input = document.createElement('input'); input.type='file'; input.accept='application/json';
-  input.onchange = (e)=>{
-    const f = e.target.files[0];
-    const reader = new FileReader();
-    reader.onload = ()=> {
-      try{
-        const newState = JSON.parse(reader.result);
-        STATE = newState;
-        saveState(STATE);
-        buildGrid();
-        alert('Importazione completata.');
-      }catch(er){ alert('File non valido'); }
-    };
-    reader.readAsText(f);
-  };
-  input.click();
-});
 
-document.getElementById('summary-btn').addEventListener('click', openSummary);
+document.getElementById('open-history-bottom').addEventListener('click', ()=> showHistoryView());
+document.getElementById('summary-bottom').addEventListener('click', ()=> openSummary());
+document.getElementById('summary-btn').addEventListener('click', ()=> openSummary());
+document.getElementById('back-calendar').addEventListener('click', ()=> showCalendar());
 
 function openLegend(){ 
   const modalRoot = document.getElementById('modal-root'); modalRoot.innerHTML='';
@@ -558,29 +594,32 @@ function openSettings(){
   });
 }
 
-/* History */
-function openHistory(){
+/* History view (same page) */
+function showHistoryView(){
+  document.getElementById('main-view').classList.add('hidden');
+  document.getElementById('history-view').classList.remove('hidden');
+  renderHistory();
+}
+function showCalendar(){
+  document.getElementById('history-view').classList.add('hidden');
+  document.getElementById('main-view').classList.remove('hidden');
+}
+
+/* render history list */
+function renderHistory(){
   const y = STATE.settings.currentYear;
   const m = STATE.settings.currentMonth;
   const key = getMonthKey(y,m);
   const monthData = STATE.records[key] || {};
-  const modalRoot = document.getElementById('modal-root'); modalRoot.innerHTML='';
-  const modal = document.createElement('div'); modal.className='modal';
-  const sheet = document.createElement('div'); sheet.className='sheet';
-  sheet.innerHTML = `<div class="flex-between"><strong>Storico — ${formatMonth(y,m)}</strong><button id="close">Chiudi</button></div>
-    <div class="history-list" id="history-list"></div>
-    <div style="margin-top:8px"><button class="btn" id="export-all">Esporta mese</button></div>`;
-  modal.appendChild(sheet); modalRoot.appendChild(modal);
-  sheet.querySelector('#close').addEventListener('click', ()=> modalRoot.innerHTML='');
-
-  const list = sheet.querySelector('#history-list');
-  const days = Object.keys(monthData).sort((a,b)=>a-b);
-  if(days.length===0) list.innerHTML = '<div class="small">Nessuna voce per questo mese.</div>';
+  const list = document.getElementById('history-list');
+  list.innerHTML = '';
+  const days = Object.keys(monthData).sort((a,b)=>b-a); // most recent first
+  if(days.length===0){ list.innerHTML = '<div class="small">Nessuna voce per questo mese.</div>'; return; }
   days.forEach(d=>{
     const dayBox = document.createElement('div'); dayBox.className='history-day';
-    const h = document.createElement('div'); h.style.fontWeight='700'; h.style.marginBottom='6px'; h.textContent = d + ' ' + formatMonth(y,m).split(' ')[0];
+    const h = document.createElement('div'); h.style.fontWeight='700'; h.style.marginBottom='6px'; h.textContent = d + ' — ' + formatMonth(y,m).split(' ')[0];
     dayBox.appendChild(h);
-    (monthData[d]||[]).forEach(r=>{
+    (monthData[d]||[]).slice().reverse().forEach(r=>{
       const row = document.createElement('div'); row.style.display='flex'; row.style.justifyContent='space-between'; row.style.alignItems='center'; row.style.marginBottom='6px';
       const left = document.createElement('div'); left.textContent = (r.delta>0?'+':'')+r.delta + ' — ' + (r.note || (STATE.tasks[r.taskId] ? STATE.tasks[r.taskId].title : ''));
       const right = document.createElement('div');
@@ -590,14 +629,6 @@ function openHistory(){
       dayBox.appendChild(row);
     });
     list.appendChild(dayBox);
-  });
-
-  sheet.querySelector('#export-all').addEventListener('click', ()=>{
-    const data = JSON.stringify(monthData);
-    const blob = new Blob([data], {type:'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href=url; a.download='storico-'+getMonthKey(y,m)+'.json'; a.click();
-    URL.revokeObjectURL(url);
   });
 }
 
@@ -645,7 +676,6 @@ function openSummary(){
 
 /* init */
 function init(){
-  // seed tasks if empty
   if(Object.keys(STATE.tasks).length===0){
     PRESET_TASKS.forEach(t => STATE.tasks[t.id] = {...t});
     PRESET_OPS.forEach(t => STATE.tasks[t.id] = {...t});

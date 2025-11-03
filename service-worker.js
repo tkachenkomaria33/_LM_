@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gurmano-cache-v2';
+const CACHE_NAME = 'gurmano-cache-v3';
 const URLS = ['.','index.html','manifest.json','icon-192.png','icon-512.png'];
 
 self.addEventListener('install', function(e){
