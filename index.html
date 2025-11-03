@@ -36,13 +36,14 @@
   }
   .day .number{position:absolute;top:6px;left:6px;font-weight:700}
   .entries{position:absolute;bottom:6px;left:6px;right:6px;display:flex;flex-wrap:wrap;gap:4px}
-  .entry{font-size:12px;padding:3px 6px;border-radius:999px;background:rgba(0,0,0,.04)}
+  .entry{font-size:12px;padding:3px 6px;border-radius:999px;background:rgba(0,0,0,.04);display:flex;align-items:center;gap:6px}
   .entry.maria{color:var(--maria);background:rgba(46,139,87,0.08)}
   .entry.luca{color:var(--luca);background:rgba(198,40,40,0.08)}
+  .entry .smallx{font-weight:700;font-size:12px;padding:2px 6px;border-radius:6px;background:rgba(0,0,0,0.06)}
   .today{outline:2px solid rgba(0,0,0,.03)}
   footer{margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
   .small{font-size:13px;color:var(--muted)}
-  .modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:flex-end;justify-content:center;padding:12px}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:flex-end;justify-content:center;padding:12px;z-index:50}
   .sheet{width:100%;max-width:420px;background:var(--card);border-radius:12px;padding:12px;box-shadow:0 10px 40px rgba(0,0,0,.25)}
   label{display:block;margin-top:8px;font-size:13px}
   input[type="text"],select,textarea{width:100%;padding:8px;border-radius:8px;border:1px solid #eee;margin-top:6px}
@@ -51,6 +52,8 @@
   .legend-table td{padding:6px;border-bottom:1px dashed #eee}
   .badge{display:inline-block;padding:6px 10px;border-radius:999px;background:var(--accent);font-weight:700;color:#333}
   .flex-between{display:flex;justify-content:space-between;align-items:center}
+  .history-list{max-height:50vh;overflow:auto;padding:6px}
+  .history-day{padding:8px;border-radius:8px;background:#fbfbfb;margin-bottom:8px}
   @media(min-width:820px){.app{margin-top:20px}}
 </style>
 </head>
@@ -69,6 +72,7 @@
     <div class="pill" id="month-label">—</div>
     <button class="btn" id="next-month">»</button>
     <button class="btn" id="open-legend" style="margin-left:auto">Legenda</button>
+    <button class="btn" id="open-history">Storico</button>
     <button class="btn" id="open-settings">Impostazioni</button>
   </div>
 
@@ -80,7 +84,7 @@
   </div>
 
   <footer>
-    <div class="small">Regole: <em>Segnare i compiti completati; gli Ops li assegna l'altro giocatore.</em></div>
+    <div class="small">Regole: <em>Segnare i compiti completati; gli Ops li assegna l'altro giocatore. Tocca una voce per modificarla o eliminarla.</em></div>
     <div style="margin-left:auto" class="row">
       <button class="btn" id="export-btn">Esporta</button>
       <button class="btn" id="import-btn">Importa</button>
@@ -99,26 +103,22 @@ const DEFAULT_STATE = {
     {id:'maria', name:'Maria', color:'maria'},
     {id:'luca', name:'Luca', color:'luca'}
   ],
-  // struttura: { yyyy-mm: { day: [ {playerId, delta, note, taskId, type} ] } }
   records: {},
-  tasks: {
-    // predefinito: id: {title, points, category}
-  },
-  recurring: [], // esempio: {taskId, weekday: 6, rule: 'weekly', description}
+  tasks: {},
+  recurring: [],
   settings: {
     currentYear: (new Date()).getFullYear(),
-    currentMonth: (new Date()).getMonth() // 0-based
+    currentMonth: (new Date()).getMonth()
   }
 };
 
-/* ====== Predefiniti tasks (italiano) ====== */
 const PRESET_TASKS = [
   {id:'t_feed_cat', title:'Dare da mangiare al gatto', points:1},
   {id:'t_6_mirror', title:'Lavare 6 specchi', points:1},
   {id:'t_wash_dishes', title:'Lavare i piatti', points:1},
   {id:'t_sink_after', title:'Pulire il lavello dopo i piatti', points:1},
   {id:'t_putaway_dishes', title:'Sistemare i piatti al loro posto', points:1},
-  {id:'t_wipe_kitchen', title:'Pulire superfici orizzontali cucina', points:1},
+  {id:'t_wipe_kitchen', title:'Pulire superfici orizzontali cucina',points:1},
   {id:'t_take_organic', title:'Portare fuori organico', points:1},
   {id:'t_prep_sort', title:'Preparare rifiuti per raccolta differenziata', points:1},
   {id:'t_vacuum_room', title:'Aspirare 1 stanza', points:1},
@@ -156,7 +156,6 @@ const PRESET_TASKS = [
   {id:'t_lights', title:'Pulire i lampadari (corr, bagno, studio, camera)', points:5},
   {id:'t_clean_chair', title:'Lavare una sedia', points:5},
 
-  // extra
   {id:'t_wash_blanket', title:'Lavare il piumone in lavanderia', points:10}
 ];
 
@@ -166,32 +165,25 @@ const PRESET_OPS = [
   {id:'op_no_new_bag', title:'Portare fuori immondizia e non mettere un sacco nuovo', points:-2}
 ];
 
-/* ====== Helpers & storage ====== */
 function loadState(){
   try{
     const raw = localStorage.getItem('gamedata_v1');
     if(raw) return JSON.parse(raw);
   }catch(e){}
-  // initialize default
   const s = JSON.parse(JSON.stringify(DEFAULT_STATE));
-  // seed tasks
   s.tasks = {};
   PRESET_TASKS.forEach(t => s.tasks[t.id] = {...t});
   PRESET_OPS.forEach(t => s.tasks[t.id] = {...t});
-  // recurring example: ogni sabato cambiare federe (weekday 5 if 0=Sun, but we use 1=Mon..7=Sun)
   s.recurring = [
-    // sabato (6) change pillowcase and mop floors once every other saturday? user said: "через одну субботу - менять постельное белье и мыть полы" 
-    // for simplicity we mark every sabato required
     {taskId:'t_make_bed', weekday:6, description:'Ogni sabato: rifare federe'},
-    {taskId:'t_mop_house', weekday:6, description:'Ogni sabato: lavare i pavimenti (o ogni due settimane a scelta)'}
+    {taskId:'t_mop_house', weekday:6, description:'Ogni sabato: lavare i pavimenti'}
   ];
   return s;
 }
 function saveState(s){ localStorage.setItem('gamedata_v1', JSON.stringify(s)); }
 let STATE = loadState();
 
-/* ====== UI rendering ====== */
-const app = document.getElementById('app');
+/* UI elements */
 const grid = document.getElementById('grid');
 const monthLabel = document.getElementById('month-label');
 const scoreMariaEl = document.getElementById('score-maria');
@@ -201,7 +193,6 @@ function formatMonth(year, month){
   const d = new Date(year, month, 1);
   return d.toLocaleString('it-IT', {month:'long', year:'numeric'});
 }
-
 function getMonthKey(y,m){ return y + '-' + String(m+1).padStart(2,'0'); }
 
 function buildGrid(){
@@ -209,12 +200,9 @@ function buildGrid(){
   const m = STATE.settings.currentMonth;
   monthLabel.textContent = formatMonth(y,m);
   grid.innerHTML = '';
-  // first day weekday  (0 Sun -> we want Monday as first column)
   const first = new Date(y,m,1);
-  // JS: getDay() 0=Sun..6=Sat. We want Monday(1) at index 0 -> compute offset
-  let offset = (first.getDay() + 6) % 7; // Monday -> 0
+  let offset = (first.getDay() + 6) % 7;
   const daysInMonth = new Date(y,m+1,0).getDate();
-  // Build 35 cells (7x5)
   let dayCounter = 1;
   for(let i=0;i<35;i++){
     const cell = document.createElement('div');
@@ -224,10 +212,8 @@ function buildGrid(){
       const dayNum = dayCounter;
       cell.innerHTML = '<div class="number">'+dayNum+'</div><div class="entries" data-day="'+dayNum+'"></div>';
       cell.dataset.day = dayNum;
-      // today highlight
       const today = new Date();
       if(today.getFullYear()===y && today.getMonth()===m && today.getDate()===dayNum) cell.classList.add('today');
-      // click opens quick add
       cell.addEventListener('click', ()=> openQuickAdd(y,m,dayNum));
       dayCounter++;
     } else {
@@ -245,25 +231,21 @@ function renderEntries(){
   const m = STATE.settings.currentMonth;
   const key = getMonthKey(y,m);
   const monthData = STATE.records[key] || {};
-  // clear
   document.querySelectorAll('.entries').forEach(e=> e.innerHTML='');
-  // fill recurring marks? we don't auto-add entries, but we show hint? keep simple — not adding auto records
   for(const dayStr in monthData){
     const arr = monthData[dayStr];
     const day = Number(dayStr);
     const container = document.querySelector('.entries[data-day="'+day+'"]');
     if(!container) continue;
-    // sum per player for display? we show each record as small pill
     arr.forEach(rec => {
       const el = document.createElement('div');
       el.className = 'entry ' + (rec.playerId==='maria' ? 'maria' : 'luca');
       const sign = rec.delta>0 ? '+' : '';
-      el.textContent = sign + rec.delta + (rec.note ? ' • '+rec.note : '');
-      // right-click to edit/delete
-      el.title = (rec.taskId || rec.type || 'Record') + (rec.note ? ' — '+rec.note : '');
-      el.addEventListener('contextmenu', (ev)=>{
-        ev.preventDefault();
-        openEditRecord(y,m,day,rec);
+      // content with clickable area to edit
+      el.innerHTML = `<span class="text">${sign + rec.delta}</span><span class="smallx">✎</span>`;
+      el.addEventListener('click', (ev)=>{
+        ev.stopPropagation();
+        openEditRecord(STATE.settings.currentYear, STATE.settings.currentMonth, day, rec);
       });
       container.appendChild(el);
     });
@@ -282,11 +264,11 @@ function updateScores(){
       else sums.luca += r.delta;
     });
   }
-  scoreMariaEl.textContent = 'Maria: ' + sums.maria;
-  scoreLucaEl.textContent = 'Luca: ' + sums.luca;
+  scoreMariaEl.textContent = STATE.players[0].name + ': ' + sums.maria;
+  scoreLucaEl.textContent = STATE.players[1].name + ': ' + sums.luca;
 }
 
-/* ====== Quick add modal ====== */
+/* Quick add modal */
 function openQuickAdd(y,m,day){
   const modalRoot = document.getElementById('modal-root');
   modalRoot.innerHTML = '';
@@ -297,8 +279,8 @@ function openQuickAdd(y,m,day){
       <button id="close">Chiudi</button></div>
     <label>Seleziona giocatore</label>
     <select id="player">
-      <option value="maria">Maria</option>
-      <option value="luca">Luca</option>
+      <option value="maria">${STATE.players[0].name}</option>
+      <option value="luca">${STATE.players[1].name}</option>
     </select>
     <label>Tipo</label>
     <select id="type">
@@ -314,6 +296,7 @@ function openQuickAdd(y,m,day){
       <button class="btn" id="add-btn">Aggiungi</button>
       <button class="btn" id="cancel-btn">Annulla</button>
     </div>
+    <div style="margin-top:10px"><strong>Voci del giorno</strong><div id="day-list" style="margin-top:6px"></div></div>
   `;
   modal.appendChild(sheet);
   modalRoot.appendChild(modal);
@@ -322,21 +305,17 @@ function openQuickAdd(y,m,day){
   const type = sheet.querySelector('#type');
   const taskSelect = sheet.querySelector('#task-select');
   const note = sheet.querySelector('#note');
-  const taskLabel = sheet.querySelector('#task-label');
-  const noteLabel = sheet.querySelector('#note-label');
+  const dayList = sheet.querySelector('#day-list');
 
   function fillTasks(filterType){
     taskSelect.innerHTML = '';
-    // filter ops vs tasks by checking points negative or preset list
     const tasks = Object.values(STATE.tasks);
     tasks.forEach(t=>{
-      // heuristics: if t.points < 0 -> ops
       if(filterType==='ops' && t.points < 0){
         const o = document.createElement('option'); o.value=t.id; o.textContent = `${t.title} (${t.points})`; taskSelect.appendChild(o);
-      } else if(filterType==='task' && t.points>0 && !t.id.startsWith('op_')){
+      } else if(filterType==='task' && t.points>0){
         const o = document.createElement('option'); o.value=t.id; o.textContent = `${t.title} (+${t.points})`; taskSelect.appendChild(o);
       } else if(filterType==='custom'){
-        // skip
       }
     });
     if(taskSelect.children.length===0){
@@ -345,7 +324,6 @@ function openQuickAdd(y,m,day){
   }
 
   fillTasks('task');
-
   type.addEventListener('change', ()=>{
     if(type.value==='task'){ fillTasks('task'); taskLabel.textContent='Scegli compito'; noteLabel.textContent='Nota (opzionale)'; }
     else if(type.value==='ops'){ fillTasks('ops'); taskLabel.textContent='Scegli Ops!'; noteLabel.textContent='Motivo (opzionale)'; }
@@ -354,6 +332,23 @@ function openQuickAdd(y,m,day){
 
   sheet.querySelector('#close').addEventListener('click', closeModal);
   sheet.querySelector('#cancel-btn').addEventListener('click', closeModal);
+
+  function refreshDayList(){
+    dayList.innerHTML = '';
+    const key = getMonthKey(y,m);
+    const monthData = STATE.records[key] || {};
+    const arr = (monthData[day] || []).slice();
+    arr.forEach(r=>{
+      const div = document.createElement('div'); div.style.display='flex'; div.style.justifyContent='space-between'; div.style.alignItems='center'; div.style.marginBottom='6px';
+      const left = document.createElement('div'); left.textContent = (r.delta>0?'+':'')+r.delta + ' — ' + (r.note || (STATE.tasks[r.taskId] ? STATE.tasks[r.taskId].title : ''));
+      const right = document.createElement('div');
+      const edit = document.createElement('button'); edit.className='btn'; edit.textContent='Modifica'; edit.addEventListener('click', ()=> openEditRecord(y,m,day,r));
+      right.appendChild(edit);
+      div.appendChild(left); div.appendChild(right);
+      dayList.appendChild(div);
+    });
+  }
+  refreshDayList();
 
   sheet.querySelector('#add-btn').addEventListener('click', ()=>{
     const playerId = player.value;
@@ -368,22 +363,21 @@ function openQuickAdd(y,m,day){
       taskId = taskSelect.value;
       const t = STATE.tasks[taskId];
       delta = t ? t.points : 0;
-      // ops: delta negative stored as negative already
     } else {
-      // custom
-      const desc = taskSelect.value || '';
       const parsed = parseFloat(prompt('Inserisci punti (es. 1 o -2)'));
       delta = isNaN(parsed) ? 0 : parsed;
       taskId = 'custom-'+Math.random().toString(36).slice(2,8);
       STATE.tasks[taskId] = {id:taskId, title: note.value || 'Custom', points:delta};
     }
-    addRecord(y,m,day, {playerId, delta, note:noteText, taskId, type:type.value});
-    closeModal();
+    const rec = { id: 'r_'+Math.random().toString(36).slice(2,9), playerId, delta, note:noteText, taskId, type:type.value, createdAt: Date.now() };
+    addRecord(y,m,day, rec);
+    note.value=''; refreshDayList();
   });
 
   function closeModal(){ modalRoot.innerHTML=''; buildGrid(); saveState(STATE); }
 }
 
+/* Edit / delete record */
 function openEditRecord(y,m,day,rec){
   const modalRoot = document.getElementById('modal-root');
   modalRoot.innerHTML = '';
@@ -394,8 +388,8 @@ function openEditRecord(y,m,day,rec){
       <button id="close">Chiudi</button></div>
     <label>Giocatore</label>
     <select id="player">
-      <option value="maria">Maria</option>
-      <option value="luca">Luca</option>
+      <option value="maria">${STATE.players[0].name}</option>
+      <option value="luca">${STATE.players[1].name}</option>
     </select>
     <label>Punti (incl. segno)</label>
     <input id="delta" type="text" />
@@ -425,7 +419,7 @@ function openEditRecord(y,m,day,rec){
     const key = getMonthKey(y,m);
     const monthData = STATE.records[key] || {};
     if(monthData[day]){
-      const idx = monthData[day].indexOf(rec);
+      const idx = monthData[day].findIndex(x=>x.id===rec.id);
       if(idx>=0) monthData[day].splice(idx,1);
       saveState(STATE);
       modalRoot.innerHTML=''; buildGrid();
@@ -433,7 +427,7 @@ function openEditRecord(y,m,day,rec){
   });
 }
 
-/* ====== Data operations ====== */
+/* Data ops */
 function ensureMonthKey(y,m){
   const key = getMonthKey(y,m);
   if(!STATE.records[key]) STATE.records[key] = {};
@@ -442,24 +436,18 @@ function ensureMonthKey(y,m){
 function addRecord(y,m,day,rec){
   const key = ensureMonthKey(y,m);
   if(!STATE.records[key][day]) STATE.records[key][day] = [];
-  // push a shallow copy
-  STATE.records[key][day].push({...rec});
+  STATE.records[key][day].push(rec);
   saveState(STATE);
   renderEntries();
   updateScores();
 }
 
-/* ====== Legend & settings & export/import & summary ====== */
+/* Legend, settings, export/import, history */
 document.getElementById('open-legend').addEventListener('click', openLegend);
 document.getElementById('open-settings').addEventListener('click', openSettings);
-document.getElementById('prev-month').addEventListener('click', ()=>{
-  if(STATE.settings.currentMonth===0){ STATE.settings.currentMonth=11; STATE.settings.currentYear--; } else STATE.settings.currentMonth--;
-  buildGrid(); saveState(STATE);
-});
-document.getElementById('next-month').addEventListener('click', ()=>{
-  if(STATE.settings.currentMonth===11){ STATE.settings.currentMonth=0; STATE.settings.currentYear++; } else STATE.settings.currentMonth++;
-  buildGrid(); saveState(STATE);
-});
+document.getElementById('open-history').addEventListener('click', openHistory);
+document.getElementById('prev-month').addEventListener('click', ()=>{ if(STATE.settings.currentMonth===0){ STATE.settings.currentMonth=11; STATE.settings.currentYear--; } else STATE.settings.currentMonth--; buildGrid(); saveState(STATE); });
+document.getElementById('next-month').addEventListener('click', ()=>{ if(STATE.settings.currentMonth===11){ STATE.settings.currentMonth=0; STATE.settings.currentYear++; } else STATE.settings.currentMonth++; buildGrid(); saveState(STATE); });
 
 document.getElementById('export-btn').addEventListener('click', ()=>{
   const data = JSON.stringify(STATE);
@@ -489,49 +477,30 @@ document.getElementById('import-btn').addEventListener('click', ()=>{
 
 document.getElementById('summary-btn').addEventListener('click', openSummary);
 
-function openLegend(){
-  const modalRoot = document.getElementById('modal-root');
-  modalRoot.innerHTML = '';
+function openLegend(){ 
+  const modalRoot = document.getElementById('modal-root'); modalRoot.innerHTML='';
   const modal = document.createElement('div'); modal.className='modal';
   const sheet = document.createElement('div'); sheet.className='sheet';
   sheet.innerHTML = `<div class="flex-between"><strong>Legenda compiti</strong><button id="close">Chiudi</button></div>
-    <table class="legend-table">
-      <tbody id="legend-body"></tbody>
-    </table>
+    <table class="legend-table"><tbody id="legend-body"></tbody></table>
     <div style="margin-top:8px"><strong>Ops! (penalità)</strong></div>
     <div id="ops-list"></div>
-    <div style="margin-top:10px"><button class="btn" id="add-task">Aggiungi / Modifica compiti</button></div>
-  `;
+    <div style="margin-top:10px"><button class="btn" id="add-task">Aggiungi / Modifica compiti</button></div>`;
   modal.appendChild(sheet); modalRoot.appendChild(modal);
   sheet.querySelector('#close').addEventListener('click', ()=> modalRoot.innerHTML='');
-
   const tbody = sheet.querySelector('#legend-body');
-  // group by points
   const tasks = Object.values(STATE.tasks).sort((a,b)=>a.points-b.points);
   const groups = {};
-  tasks.forEach(t=>{
-    const key = String(t.points);
-    if(!groups[key]) groups[key]=[];
-    groups[key].push(t);
-  });
+  tasks.forEach(t=>{ const key = String(t.points); if(!groups[key]) groups[key]=[]; groups[key].push(t); });
   tbody.innerHTML = '';
-  [1,2,3,4,5,10].forEach(p=>{
-    const arr = groups[String(p)];
-    if(arr && arr.length){
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td><strong>${p} punto${p>1?'i':''}</strong></td><td>${arr.map(x=>x.title).join(' • ')}</td>`;
-      tbody.appendChild(tr);
-    }
-  });
+  [1,2,3,4,5,10].forEach(p=>{ const arr = groups[String(p)]; if(arr && arr.length){ const tr = document.createElement('tr'); tr.innerHTML = `<td><strong>${p} punto${p>1?'i':''}</strong></td><td>${arr.map(x=>x.title).join(' • ')}</td>`; tbody.appendChild(tr); } });
   const ops = tasks.filter(t=>t.points<0);
-  const opsList = sheet.querySelector('#ops-list');
-  opsList.innerHTML = ops.map(o=>`<div>${o.title} (${o.points})</div>`).join('');
+  const opsList = sheet.querySelector('#ops-list'); opsList.innerHTML = ops.map(o=>`<div>${o.title} (${o.points})</div>`).join('');
   sheet.querySelector('#add-task').addEventListener('click', ()=> openTaskEditor());
 }
 
 function openTaskEditor(){
-  const modalRoot = document.getElementById('modal-root');
-  modalRoot.innerHTML = '';
+  const modalRoot = document.getElementById('modal-root'); modalRoot.innerHTML='';
   const modal = document.createElement('div'); modal.className='modal';
   const sheet = document.createElement('div'); sheet.className='sheet';
   let rows = Object.values(STATE.tasks).map(t=>{
@@ -549,7 +518,6 @@ function openTaskEditor(){
   modal.appendChild(sheet); modalRoot.appendChild(modal);
   sheet.querySelector('#close').addEventListener('click', ()=> modalRoot.innerHTML='');
   sheet.querySelector('#save-tasks').addEventListener('click', ()=>{
-    // read all inputs
     sheet.querySelectorAll('input[type="text"]').forEach(inp=>{
       const id = inp.dataset.id;
       const title = inp.value.trim();
@@ -564,13 +532,12 @@ function openTaskEditor(){
     const nid = 't'+Math.random().toString(36).slice(2,8);
     STATE.tasks[nid] = {id:nid, title:'Nuovo compito', points:1};
     saveState(STATE);
-    openTaskEditor(); // reopen to reflect
+    openTaskEditor();
   });
 }
 
 function openSettings(){
-  const modalRoot = document.getElementById('modal-root');
-  modalRoot.innerHTML = '';
+  const modalRoot = document.getElementById('modal-root'); modalRoot.innerHTML='';
   const modal = document.createElement('div'); modal.className='modal';
   const sheet = document.createElement('div'); sheet.className='sheet';
   sheet.innerHTML = `<div class="flex-between"><strong>Impostazioni</strong><button id="close">Chiudi</button></div>
@@ -591,18 +558,60 @@ function openSettings(){
   });
 }
 
-/* ====== Summary (badge & winner) ====== */
+/* History */
+function openHistory(){
+  const y = STATE.settings.currentYear;
+  const m = STATE.settings.currentMonth;
+  const key = getMonthKey(y,m);
+  const monthData = STATE.records[key] || {};
+  const modalRoot = document.getElementById('modal-root'); modalRoot.innerHTML='';
+  const modal = document.createElement('div'); modal.className='modal';
+  const sheet = document.createElement('div'); sheet.className='sheet';
+  sheet.innerHTML = `<div class="flex-between"><strong>Storico — ${formatMonth(y,m)}</strong><button id="close">Chiudi</button></div>
+    <div class="history-list" id="history-list"></div>
+    <div style="margin-top:8px"><button class="btn" id="export-all">Esporta mese</button></div>`;
+  modal.appendChild(sheet); modalRoot.appendChild(modal);
+  sheet.querySelector('#close').addEventListener('click', ()=> modalRoot.innerHTML='');
+
+  const list = sheet.querySelector('#history-list');
+  const days = Object.keys(monthData).sort((a,b)=>a-b);
+  if(days.length===0) list.innerHTML = '<div class="small">Nessuna voce per questo mese.</div>';
+  days.forEach(d=>{
+    const dayBox = document.createElement('div'); dayBox.className='history-day';
+    const h = document.createElement('div'); h.style.fontWeight='700'; h.style.marginBottom='6px'; h.textContent = d + ' ' + formatMonth(y,m).split(' ')[0];
+    dayBox.appendChild(h);
+    (monthData[d]||[]).forEach(r=>{
+      const row = document.createElement('div'); row.style.display='flex'; row.style.justifyContent='space-between'; row.style.alignItems='center'; row.style.marginBottom='6px';
+      const left = document.createElement('div'); left.textContent = (r.delta>0?'+':'')+r.delta + ' — ' + (r.note || (STATE.tasks[r.taskId] ? STATE.tasks[r.taskId].title : ''));
+      const right = document.createElement('div');
+      const edit = document.createElement('button'); edit.className='btn'; edit.textContent='Modifica'; edit.addEventListener('click', ()=> openEditRecord(y,m,Number(d),r));
+      right.appendChild(edit);
+      row.appendChild(left); row.appendChild(right);
+      dayBox.appendChild(row);
+    });
+    list.appendChild(dayBox);
+  });
+
+  sheet.querySelector('#export-all').addEventListener('click', ()=>{
+    const data = JSON.stringify(monthData);
+    const blob = new Blob([data], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href=url; a.download='storico-'+getMonthKey(y,m)+'.json'; a.click();
+    URL.revokeObjectURL(url);
+  });
+}
+
+/* Summary */
 function openSummary(){
   const y = STATE.settings.currentYear;
   const m = STATE.settings.currentMonth;
   const key = getMonthKey(y,m);
   const monthData = STATE.records[key] || {};
   let totals = {maria:0, luca:0};
-  let obligatoryCount = {maria:0, luca:0}; // count of recurring tasks completed
+  let obligatoryCount = {maria:0, luca:0};
   for(const day in monthData){
     monthData[day].forEach(r=>{
       totals[r.playerId] += r.delta;
-      // if r.taskId in recurring set, count if positive
       const isRecurring = STATE.recurring.some(rc => rc.taskId === r.taskId);
       if(isRecurring && r.delta>0) obligatoryCount[r.playerId]++;
     });
@@ -634,16 +643,20 @@ function openSummary(){
   sheet.querySelector('#close2').addEventListener('click', ()=> modalRoot.innerHTML='');
 }
 
-/* ====== init ====== */
+/* init */
 function init(){
+  // seed tasks if empty
+  if(Object.keys(STATE.tasks).length===0){
+    PRESET_TASKS.forEach(t => STATE.tasks[t.id] = {...t});
+    PRESET_OPS.forEach(t => STATE.tasks[t.id] = {...t});
+    saveState(STATE);
+  }
   buildGrid();
-  // register service worker for PWA offline
   if('serviceWorker' in navigator){
     navigator.serviceWorker.register('service-worker.js').catch(()=>{/*ok*/});
   }
 }
-function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
+function escapeHtml(s){ return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 init();
 </script>
 </body>
