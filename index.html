@@ -259,7 +259,7 @@ function renderEntries(){
       el.className = 'entry ' + (rec.playerId==='maria' ? 'maria' : 'luca');
       const sign = rec.delta>0 ? '+' : '';
       el.innerHTML = `<span class="text">${sign + rec.delta}</span>`;
-      // small tap opens day popup and highlights
+      // small tap opens day popup
       el.addEventListener('click', (ev)=>{
         ev.stopPropagation();
         openDayPopup(STATE.settings.currentYear, STATE.settings.currentMonth, day);
@@ -319,6 +319,7 @@ function openDayPopup(y,m,day){
       saveState(STATE);
       modalRoot.innerHTML='';
       buildGrid();
+      renderHistory(); // keep history in sync
     });
     right.appendChild(del);
     row.appendChild(left); row.appendChild(right);
@@ -376,7 +377,6 @@ function openQuickAdd(y,m,day){
         const o = document.createElement('option'); o.value=t.id; o.textContent = `${t.title} (${t.points})`; taskSelect.appendChild(o);
       } else if(filterType==='task' && t.points>0){
         const o = document.createElement('option'); o.value=t.id; o.textContent = `${t.title} (+${t.points})`; taskSelect.appendChild(o);
-      } else if(filterType==='custom'){
       }
     });
     if(taskSelect.children.length===0){
@@ -417,7 +417,7 @@ function openQuickAdd(y,m,day){
     closeModal();
   });
 
-  function closeModal(){ modalRoot.innerHTML=''; buildGrid(); saveState(STATE); }
+  function closeModal(){ modalRoot.innerHTML=''; buildGrid(); saveState(STATE); renderHistory(); }
 }
 
 /* Edit / delete record modal (used from history) */
@@ -454,7 +454,7 @@ function openEditRecord(y,m,day,rec){
     rec.delta = Number(sheet.querySelector('#delta').value) || 0;
     rec.note = sheet.querySelector('#note').value;
     saveState(STATE);
-    modalRoot.innerHTML=''; buildGrid();
+    modalRoot.innerHTML=''; buildGrid(); renderHistory();
   });
   sheet.querySelector('#del-btn').addEventListener('click', ()=>{
     if(!confirm('Eliminare questa voce?')) return;
@@ -464,7 +464,7 @@ function openEditRecord(y,m,day,rec){
       const idx = monthData[day].findIndex(x=>x.id===rec.id);
       if(idx>=0) monthData[day].splice(idx,1);
       saveState(STATE);
-      modalRoot.innerHTML=''; buildGrid();
+      modalRoot.innerHTML=''; buildGrid(); renderHistory();
     }
   });
 }
@@ -484,7 +484,7 @@ function addRecord(y,m,day,rec){
   updateScores();
 }
 
-/* Legend, settings, export/import, history */
+/* Legend, settings, export, history */
 document.getElementById('open-legend').addEventListener('click', openLegend);
 document.getElementById('open-settings').addEventListener('click', openSettings);
 document.getElementById('prev-month').addEventListener('click', ()=>{ if(STATE.settings.currentMonth===0){ STATE.settings.currentMonth=11; STATE.settings.currentYear--; } else STATE.settings.currentMonth--; buildGrid(); saveState(STATE); });
