@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <title>Gurmano Home Game</title>
 <link rel="manifest" href="manifest.json" />
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js');
+  }
+</script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#F8FAF2">
 <style>
