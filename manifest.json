@@ -1,10 +1,11 @@
 {
   "short_name": "Gurmano",
   "name": "Gurmano Home Game",
-  "start_url": ".",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#F8FAF2",
   "theme_color": "#F8FAF2",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "icon-192.png",
